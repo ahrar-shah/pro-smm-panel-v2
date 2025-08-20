@@ -410,6 +410,16 @@
       font-size: 0.9rem;
     }
 
+    /* Login Form */
+    .login-form {
+      max-width: 400px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+
     /* Animations */
     @keyframes fadeIn {
       from { opacity: 0; }
@@ -566,52 +576,8 @@
     </div>
   </nav>
 
-  <div class="container grid two">
-    <div class="card">
-      <h2><i class="fas fa-shopping-cart"></i> Orders</h2>
-      <table id="ordersTbl">
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>User</th>
-            <th>Platform</th>
-            <th>Service</th>
-            <th>Qty</th>
-            <th>Price</th>
-            <th>Payment</th>
-            <th>Proof</th>
-            <th>Time</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <p id="ordersMsg"></p>
-    </div>
-
-    <div class="card">
-      <h2><i class="fas fa-cog"></i> Services</h2>
-      <div id="services"></div>
-      <hr/><br/>
-      <h3><i class="fas fa-plus-circle"></i> Add Service</h3>
-      <form id="addService">
-        <div class="form-group">
-          <label for="platform"><i class="fas fa-tablet-alt"></i> Platform</label>
-          <input id="platform" name="platform" placeholder="TikTok / Instagram / YouTube" required />
-        </div>
-        <div class="form-group">
-          <label for="name"><i class="fas fa-tag"></i> Service Name</label>
-          <input id="name" name="name" placeholder="Followers / Likes / ..." required />
-        </div>
-        <div class="form-group">
-          <label for="price"><i class="fas fa-tag"></i> Price (PKR per 1)</label>
-          <input id="price" name="price" type="number" step="0.01" required />
-        </div>
-        <button class="btn" type="submit"><i class="fas fa-plus"></i> Add Service</button>
-      </form>
-      <p id="svcMsg"></p>
-    </div>
+  <div class="container" id="adminContent">
+    <!-- Content will be loaded here dynamically -->
   </div>
 
   <footer>
@@ -619,6 +585,9 @@
   </footer>
 
   <script>
+    let currentUser = null;
+    let isUserAdmin = false;
+
     function toggleMenu(){ 
       document.getElementById('nav').classList.toggle('open'); 
     }
@@ -631,35 +600,192 @@
       }
     });
 
-    async function me(){
+    // Enhanced fetch with credentials
+    async function fetchWithAuth(url, options = {}) {
+      const defaultOptions = {
+        credentials: 'include', // Important for sessions to work
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers
+        }
+      };
+      
+      const response = await fetch(url, { ...defaultOptions, ...options });
+      
+      if (response.status === 401) {
+        // Unauthorized - redirect to login
+        showLoginForm();
+        throw new Error('Unauthorized');
+      }
+      
+      if (response.status === 403) {
+        // Forbidden - not an admin
+        showNotAdminMessage();
+        throw new Error('Forbidden - Admin access required');
+      }
+      
+      return response;
+    }
+
+    async function checkAuth() {
       try {
-        const r = await fetch('/api/me'); 
-        const j = await r.json();
-        if(!j.user) return location.href='/';
-        if(!j.admin){ 
-          alert('Admin only. Login as admin Gmail.'); 
-          return location.href='/'; 
+        const response = await fetchWithAuth('/api/me');
+        const data = await response.json();
+        
+        if (data.user) {
+          currentUser = data.user;
+          isUserAdmin = data.admin;
+          
+          if (isUserAdmin) {
+            loadAdminPanel();
+          } else {
+            showNotAdminMessage();
+          }
+        } else {
+          showLoginForm();
         }
       } catch (error) {
-        console.error('Error checking admin status:', error);
-        location.href='/';
+        console.error('Auth check failed:', error);
+        showLoginForm();
       }
     }
-    
+
+    function showLoginForm() {
+      document.getElementById('adminContent').innerHTML = `
+        <div class="login-form">
+          <h2><i class="fas fa-lock"></i> Admin Login Required</h2>
+          <p>You need to log in with an admin account to access this panel.</p>
+          <form id="adminLoginForm">
+            <div class="form-group">
+              <label for="username"><i class="fas fa-user"></i> Username</label>
+              <input id="username" name="username" required />
+            </div>
+            <div class="form-group">
+              <label for="password"><i class="fas fa-key"></i> Password</label>
+              <input id="password" type="password" name="password" required />
+            </div>
+            <button class="btn" type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
+          </form>
+          <p id="loginMsg"></p>
+        </div>
+      `;
+
+      document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const loginMsg = document.getElementById('loginMsg');
+        
+        try {
+          const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: formData.get('username'),
+              password: formData.get('password')
+            }),
+            credentials: 'include'
+          });
+          
+          const data = await response.json();
+          
+          if (data.ok) {
+            // Reload to check if user is admin
+            location.reload();
+          } else {
+            loginMsg.textContent = data.error || 'Login failed';
+            loginMsg.className = 'error';
+          }
+        } catch (error) {
+          loginMsg.textContent = 'Login failed. Please try again.';
+          loginMsg.className = 'error';
+        }
+      });
+    }
+
+    function showNotAdminMessage() {
+      document.getElementById('adminContent').innerHTML = `
+        <div class="card">
+          <h2><i class="fas fa-exclamation-triangle"></i> Access Denied</h2>
+          <p>You are logged in as <strong>${currentUser?.username}</strong>, but this account doesn't have admin privileges.</p>
+          <p>Please log in with an admin account (Gmail: ${process.env.GMAIL_USER || 'admin@example.com'}) to access the admin panel.</p>
+          <button class="btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+      `;
+    }
+
+    function loadAdminPanel() {
+      document.getElementById('adminContent').innerHTML = `
+        <div class="grid two">
+          <div class="card">
+            <h2><i class="fas fa-shopping-cart"></i> Orders</h2>
+            <table id="ordersTbl">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>User</th>
+                  <th>Platform</th>
+                  <th>Service</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Payment</th>
+                  <th>Proof</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <p id="ordersMsg"></p>
+          </div>
+
+          <div class="card">
+            <h2><i class="fas fa-cog"></i> Services</h2>
+            <div id="services"></div>
+            <hr/><br/>
+            <h3><i class="fas fa-plus-circle"></i> Add Service</h3>
+            <form id="addService">
+              <div class="form-group">
+                <label for="platform"><i class="fas fa-tablet-alt"></i> Platform</label>
+                <input id="platform" name="platform" placeholder="TikTok / Instagram / YouTube" required />
+              </div>
+              <div class="form-group">
+                <label for="name"><i class="fas fa-tag"></i> Service Name</label>
+                <input id="name" name="name" placeholder="Followers / Likes / ..." required />
+              </div>
+              <div class="form-group">
+                <label for="price"><i class="fas fa-tag"></i> Price (PKR per 1)</label>
+                <input id="price" name="price" type="number" step="0.01" required />
+              </div>
+              <button class="btn" type="submit"><i class="fas fa-plus"></i> Add Service</button>
+            </form>
+            <p id="svcMsg"></p>
+          </div>
+        </div>
+      `;
+
+      // Now load the admin data
+      loadOrders();
+      loadServices();
+      
+      // Set up the add service form
+      document.getElementById('addService').addEventListener('submit', handleAddService);
+    }
+
     async function loadOrders(){
       try {
-        const r = await fetch('/api/admin/orders');
-        const j = await r.json();
+        const response = await fetchWithAuth('/api/admin/orders');
+        const data = await response.json();
         const ordersMsg = document.getElementById('ordersMsg');
         
-        if(!j.orders){ 
-          ordersMsg.textContent = j.error || 'No orders found';
+        if(!data.orders){ 
+          ordersMsg.textContent = data.error || 'No orders found';
           ordersMsg.className = 'error';
           return; 
         }
         
         const tb = document.querySelector('#ordersTbl tbody');
-        tb.innerHTML = j.orders.map(o=>`
+        tb.innerHTML = data.orders.map(o => `
           <tr>
             <td>${o.id}</td>
             <td>
@@ -688,20 +814,22 @@
           </tr>
         `).join('');
         
-        ordersMsg.textContent = `Loaded ${j.orders.length} orders`;
+        ordersMsg.textContent = `Loaded ${data.orders.length} orders`;
         ordersMsg.className = 'success';
       } catch (error) {
         console.error('Error loading orders:', error);
-        document.getElementById('ordersMsg').textContent = 'Failed to load orders';
-        document.getElementById('ordersMsg').className = 'error';
+        const ordersMsg = document.getElementById('ordersMsg');
+        if (ordersMsg) {
+          ordersMsg.textContent = 'Failed to load orders';
+          ordersMsg.className = 'error';
+        }
       }
     }
     
     async function setStatus(id, status){
       try {
-        await fetch('/api/admin/orders/status', {
+        await fetchWithAuth('/api/admin/orders/status', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({id, status})
         });
         loadOrders();
@@ -713,20 +841,22 @@
 
     async function loadServices(){
       try {
-        const r = await fetch('/api/services'); 
-        const j = await r.json();
+        const response = await fetchWithAuth('/api/services');
+        const data = await response.json();
         const root = document.getElementById('services');
         
-        if (!j.services || j.services.length === 0) {
+        if (!root) return;
+        
+        if (!data.services || data.services.length === 0) {
           root.innerHTML = '<p>No services found</p>';
           return;
         }
         
-        root.innerHTML = j.services.map(p=>`
+        root.innerHTML = data.services.map(p => `
           <div class="card" style="margin:10px 0">
             <div class="badge"><i class="fas fa-tablet-alt"></i> <b>${p.platform}</b></div>
             <table><tbody>
-              ${p.services.map(s=>`
+              ${p.services.map(s => `
                 <tr>
                   <td><strong>${s.name}</strong></td>
                   <td>${s.price} PKR</td>
@@ -746,15 +876,17 @@
         `).join('');
       } catch (error) {
         console.error('Error loading services:', error);
-        document.getElementById('services').innerHTML = '<p class="error">Failed to load services</p>';
+        const root = document.getElementById('services');
+        if (root) {
+          root.innerHTML = '<p class="error">Failed to load services</p>';
+        }
       }
     }
     
     async function toggleSvc(platform, name, active){
       try {
-        await fetch('/api/admin/services/toggle', {
+        await fetchWithAuth('/api/admin/services/toggle', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({platform, name, active})
         });
         loadServices();
@@ -768,9 +900,8 @@
       if (!confirm(`Are you sure you want to delete ${name} from ${platform}?`)) return;
       
       try {
-        await fetch('/api/admin/services/delete', {
+        await fetchWithAuth('/api/admin/services/delete', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({platform, name})
         });
         loadServices();
@@ -780,32 +911,34 @@
       }
     }
     
-    document.getElementById('addService').addEventListener('submit', async (e)=>{
+    async function handleAddService(e){
       e.preventDefault();
       const svcMsg = document.getElementById('svcMsg');
+      if (!svcMsg) return;
+      
       svcMsg.textContent = '';
       svcMsg.className = '';
       
       try {
         const f = new FormData(e.target);
-        const r = await fetch('/api/admin/services/add', {
+        const response = await fetchWithAuth('/api/admin/services/add', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             platform: f.get('platform'),
             name: f.get('name'),
             price: f.get('price')
           })
         });
-        const j = await r.json();
         
-        if (j.ok) {
+        const data = await response.json();
+        
+        if (data.ok) {
           svcMsg.textContent = 'Service added successfully';
           svcMsg.className = 'success';
           e.target.reset();
           loadServices();
         } else {
-          svcMsg.textContent = j.error || 'Failed to add service';
+          svcMsg.textContent = data.error || 'Failed to add service';
           svcMsg.className = 'error';
         }
       } catch (error) {
@@ -813,17 +946,15 @@
         svcMsg.textContent = 'Connection error. Please try again.';
         svcMsg.className = 'error';
       }
-    });
+    }
     
-    function logout(){ 
-      fetch('/api/logout', {method: 'POST'}).then(() => location.href = '/'); 
+    async function logout(){ 
+      await fetch('/api/logout', {method: 'POST', credentials: 'include'});
+      location.href = '/'; 
     }
 
-    // Initialize
-    me().then(() => { 
-      loadOrders(); 
-      loadServices(); 
-    });
+    // Initialize the admin panel
+    checkAuth();
   </script>
 </body>
 </html>
