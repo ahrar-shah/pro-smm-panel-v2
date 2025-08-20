@@ -1,281 +1,487 @@
-import express from "express";
-import session from "express-session";
-import dotenv from "dotenv";
-import bcrypt from "bcryptjs";
-import fs from "fs-extra";
-import path from "path";
-import multer from "multer";
-import nodemailer from "nodemailer";
-import { v4 as uuidv4 } from "uuid";
-import { fileURLToPath } from "url";
-
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const path = require('path');
+const bcrypt = require('bcryptjs');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const server = http.createServer(app);
+const io = socketIo(server);
 
-const DB_DIR = path.join(__dirname, "db");
-const USERS_FILE = path.join(DB_DIR, "users.json");
-const ORDERS_FILE = path.join(DB_DIR, "orders.json");
-const SERVICES_FILE = path.join(DB_DIR, "services.json");
-const UPLOADS_DIR = path.join(__dirname, "uploads");
+// In-memory storage instead of JSON files
+let users = {};
+let contacts = {};
+let chats = {};
+let statuses = {};
+let calls = {};
 
-await fs.ensureDir(DB_DIR);
-await fs.ensureDir(UPLOADS_DIR);
-if (!(await fs.pathExists(USERS_FILE))) await fs.writeJSON(USERS_FILE, []);
-if (!(await fs.pathExists(ORDERS_FILE))) await fs.writeJSON(ORDERS_FILE, []);
-if (!(await fs.pathExists(SERVICES_FILE))) await fs.writeJSON(SERVICES_FILE, []);
+// Middleware
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "change_me",
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+// Helper functions
+function generateHexaId() {
+    return 'HX-' + Math.floor(100000000 + Math.random() * 900000000);
+}
 
-app.use("/uploads", express.static(UPLOADS_DIR));
-app.use(express.static(path.join(__dirname, "public")));
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
 
-// Multer for screenshot uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || "");
-    cb(null, `${Date.now()}-${uuidv4()}${ext}`);
-  },
-});
-const upload = multer({ storage });
+function formatLastSeen(timestamp) {
+    const now = new Date();
+    const lastSeen = new Date(timestamp);
+    const diffMinutes = Math.floor((now - lastSeen) / (1000 * 60));
+    
+    if (diffMinutes < 1) return 'just now';
+    if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+    if (diffMinutes < 1440) {
+        const diffHours = Math.floor(diffMinutes / 60);
+        return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    }
+    
+    const diffDays = Math.floor(diffMinutes / 1440);
+    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+}
 
-// Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-});
+// API Routes
 
-// Helpers
-const readJSON = async (file) => (await fs.readJSON(file)) || [];
-const writeJSON = async (file, data) => fs.writeJSON(file, data, { spaces: 2 });
-
-const authRequired = (req, res, next) => {
-  if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
-  next();
-};
-
-const isAdmin = (req) =>
-  req.session?.user?.email &&
-  process.env.GMAIL_USER &&
-  req.session.user.email.toLowerCase() === process.env.GMAIL_USER.toLowerCase();
-
-const adminRequired = (req, res, next) => {
-  if (!authRequired) return;
-  if (!isAdmin(req)) return res.status(403).json({ error: "Admin only" });
-  next();
-};
-
-// ===== Auth =====
-app.post("/api/signup", async (req, res) => {
-  try {
-    const { username, name, email, phone, password } = req.body;
-    if (!username || !name || !email || !phone || !password)
-      return res.status(400).json({ error: "All fields required" });
-
-    const users = await readJSON(USERS_FILE);
-    if (users.some((u) => u.username.toLowerCase() === username.toLowerCase()))
-      return res.status(409).json({ error: "Username already exists" });
-    if (users.some((u) => u.email.toLowerCase() === email.toLowerCase()))
-      return res.status(409).json({ error: "Email already exists" });
-
-    const hash = await bcrypt.hash(password, 10);
-    const user = {
-      id: uuidv4(),
-      username,
-      name,
-      email,
-      phone,
-      password: hash,
-      createdAt: new Date().toISOString(),
-    };
-    users.push(user);
-    await writeJSON(USERS_FILE, users);
-    req.session.user = { id: user.id, username, name, email, phone };
-    res.json({ ok: true, user: req.session.user });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Signup failed" });
-  }
+// User registration
+app.post('/api/signup', async (req, res) => {
+    try {
+        const { firstName, lastName, password } = req.body;
+        
+        if (!firstName || !lastName || !password) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+        
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+        
+        const id = generateHexaId();
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        users[id] = {
+            id,
+            firstName,
+            lastName,
+            password: hashedPassword,
+            bio: "Hey there! I'm using Hexachats.",
+            avatar: `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=random`,
+            phone: "",
+            email: "",
+            contacts: [],
+            chats: {},
+            statuses: [],
+            calls: [],
+            settings: {
+                theme: 'light',
+                online: true,
+                lastSeen: Date.now()
+            },
+            typing: {}
+        };
+        
+        // Initialize empty data structures for this user
+        contacts[id] = [];
+        chats[id] = {};
+        statuses[id] = [];
+        calls[id] = [];
+        
+        res.status(201).json({ 
+            message: 'User created successfully', 
+            userId: id 
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
-app.post("/api/login", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const users = await readJSON(USERS_FILE);
-    const user = users.find((u) => u.username.toLowerCase() === username.toLowerCase());
-    if (!user) return res.status(400).json({ error: "Invalid credentials" });
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(400).json({ error: "Invalid credentials" });
-    req.session.user = { id: user.id, username: user.username, name: user.name, email: user.email, phone: user.phone };
-    res.json({ ok: true, user: req.session.user });
-  } catch (e) {
-    res.status(500).json({ error: "Login failed" });
-  }
+// User login
+app.post('/api/login', async (req, res) => {
+    try {
+        const { id, password } = req.body;
+        
+        if (!id || !password) {
+            return res.status(400).json({ error: 'ID and password are required' });
+        }
+        
+        if (!/^HX-\d{9}$/.test(id)) {
+            return res.status(400).json({ error: 'Invalid Hexachats ID format' });
+        }
+        
+        const user = users[id];
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid password' });
+        }
+        
+        // Update user status
+        user.settings.online = true;
+        user.settings.lastSeen = Date.now();
+        
+        res.json({
+            message: 'Login successful',
+            user: {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                bio: user.bio,
+                avatar: user.avatar,
+                phone: user.phone,
+                email: user.email,
+                settings: user.settings
+            },
+            contacts: contacts[id] || [],
+            chats: chats[id] || {},
+            statuses: statuses[id] || [],
+            calls: calls[id] || []
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
-app.get("/api/me", (req, res) => {
-  res.json({ user: req.session.user || null, admin: isAdmin(req) });
-});
-
-app.post("/api/logout", (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
-});
-
-// ===== Services =====
-app.get("/api/services", async (req, res) => {
-  const services = await readJSON(SERVICES_FILE);
-  res.json({ services });
-});
-
-app.post("/api/admin/services/add", authRequired, adminRequired, async (req, res) => {
-  const { platform, name, price } = req.body;
-  if (!platform || !name || !price) return res.status(400).json({ error: "platform, name, price required" });
-  const services = await readJSON(SERVICES_FILE);
-  let platformBlock = services.find((p) => p.platform.toLowerCase() === platform.toLowerCase());
-  if (!platformBlock) {
-    platformBlock = { platform, services: [] };
-    services.push(platformBlock);
-  }
-  if (platformBlock.services.some((s) => s.name.toLowerCase() === name.toLowerCase()))
-    return res.status(409).json({ error: "Service already exists" });
-
-  platformBlock.services.push({ name, price: Number(price), active: true });
-  await writeJSON(SERVICES_FILE, services);
-  res.json({ ok: true, services });
-});
-
-app.post("/api/admin/services/delete", authRequired, adminRequired, async (req, res) => {
-  const { platform, name } = req.body;
-  const services = await readJSON(SERVICES_FILE);
-  const pIdx = services.findIndex((p) => p.platform.toLowerCase() === platform.toLowerCase());
-  if (pIdx === -1) return res.status(404).json({ error: "Platform not found" });
-  services[pIdx].services = services[pIdx].services.filter((s) => s.name.toLowerCase() !== name.toLowerCase());
-  await writeJSON(SERVICES_FILE, services);
-  res.json({ ok: true, services });
-});
-
-app.post("/api/admin/services/toggle", authRequired, adminRequired, async (req, res) => {
-  const { platform, name, active } = req.body;
-  const services = await readJSON(SERVICES_FILE);
-  const pb = services.find((p) => p.platform.toLowerCase() === platform.toLowerCase());
-  if (!pb) return res.status(404).json({ error: "Platform not found" });
-  const sv = pb.services.find((s) => s.name.toLowerCase() === name.toLowerCase());
-  if (!sv) return res.status(404).json({ error: "Service not found" });
-  sv.active = Boolean(active);
-  await writeJSON(SERVICES_FILE, services);
-  res.json({ ok: true, services });
-});
-
-// ===== Orders =====
-app.post("/api/order", authRequired, upload.single("screenshot"), async (req, res) => {
-  try {
-    const { platform, service, quantity, link, note, payment } = req.body;
-    if (!platform || !service || !quantity || !link || !payment)
-      return res.status(400).json({ error: "Missing fields" });
-
-    const services = await readJSON(SERVICES_FILE);
-    const pb = services.find((p) => p.platform.toLowerCase() === platform.toLowerCase());
-    const sv = pb?.services.find((s) => s.name.toLowerCase() === service.toLowerCase() && s.active);
-    if (!sv) return res.status(400).json({ error: "Service not available" });
-
-    const qty = Math.max(1, Number(quantity || 1));
-    const price = Math.round(sv.price * qty * 100) / 100;
-
-    const orders = await readJSON(ORDERS_FILE);
-    const id = Date.now().toString(); // simple order id
-    const screenshot = req.file
-      ? { filename: req.file.originalname, storedAs: path.basename(req.file.path), path: req.file.path }
-      : null;
-
-    const order = {
-      id,
-      userId: req.session.user.id,
-      user: {
-        username: req.session.user.username,
-        name: req.session.user.name,
-        email: req.session.user.email,
-        phone: req.session.user.phone,
-      },
-      platform,
-      service,
-      quantity: qty,
-      price,
-      payment, // EasyPaisa / JazzCash
-      link,
-      note: note || "",
-      screenshot,
-      status: "in progress",
-      createdAt: new Date().toISOString(),
-    };
-    orders.push(order);
-    await writeJSON(ORDERS_FILE, orders);
-
-    // Email to admin (your Gmail)
-    await transporter.sendMail({
-      from: process.env.GMAIL_USER,
-      to: process.env.GMAIL_USER,
-      subject: `New Order #${id} from ${order.user.name}`,
-      html: `
-        <h3>New SMM Order</h3>
-        <p><b>Order ID:</b> ${id}</p>
-        <p><b>Platform:</b> ${platform}</p>
-        <p><b>Service:</b> ${service}</p>
-        <p><b>Quantity:</b> ${qty}</p>
-        <p><b>Price:</b> ${price} PKR</p>
-        <p><b>Payment:</b> ${payment}</p>
-        <p><b>Link:</b> ${link}</p>
-        <p><b>Note:</b> ${order.note || "-"}</p>
-        <hr/>
-        <p><b>User:</b> ${order.user.name} (@${order.user.username})</p>
-        <p><b>Email:</b> ${order.user.email}</p>
-        <p><b>Phone:</b> ${order.user.phone}</p>
-        <p><b>Time:</b> ${order.createdAt}</p>
-      `,
-      attachments: order.screenshot
-        ? [{ filename: order.screenshot.filename || "proof.png", path: order.screenshot.path }]
-        : [],
+// Get user profile
+app.get('/api/user/:id', (req, res) => {
+    const userId = req.params.id;
+    const user = users[userId];
+    
+    if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Return public profile information only
+    res.json({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        bio: user.bio,
+        avatar: user.avatar,
+        phone: user.phone,
+        email: user.email,
+        settings: user.settings
     });
-
-    res.json({ ok: true, orderId: id, price });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Order failed" });
-  }
 });
 
-app.get("/api/admin/orders", authRequired, adminRequired, async (req, res) => {
-  const orders = await readJSON(ORDERS_FILE);
-  res.json({ orders: orders.sort((a, b) => b.id.localeCompare(a.id)) });
+// Update user profile
+app.put('/api/user/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { firstName, lastName, bio, phone, email, avatar, password } = req.body;
+        
+        if (!users[userId]) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Update user data
+        if (firstName) users[userId].firstName = firstName;
+        if (lastName) users[userId].lastName = lastName;
+        if (bio) users[userId].bio = bio;
+        if (phone) users[userId].phone = phone;
+        if (email) users[userId].email = email;
+        if (avatar) users[userId].avatar = avatar;
+        
+        // Update password if provided
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({ error: 'Password must be at least 6 characters' });
+            }
+            users[userId].password = await bcrypt.hash(password, 10);
+        }
+        
+        res.json({ message: 'Profile updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
-app.post("/api/admin/orders/status", authRequired, adminRequired, async (req, res) => {
-  const { id, status } = req.body; // "done" | "in progress"
-  const orders = await readJSON(ORDERS_FILE);
-  const idx = orders.findIndex((o) => o.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Order not found" });
-  orders[idx].status = status;
-  await writeJSON(ORDERS_FILE, orders);
-  res.json({ ok: true });
+// Add contact
+app.post('/api/user/:userId/contacts', (req, res) => {
+    const userId = req.params.userId;
+    const { contactId } = req.body;
+    
+    if (!users[userId] || !users[contactId]) {
+        return res.status(404).json({ error: 'User or contact not found' });
+    }
+    
+    if (userId === contactId) {
+        return res.status(400).json({ error: 'Cannot add yourself as a contact' });
+    }
+    
+    if (contacts[userId].includes(contactId)) {
+        return res.status(400).json({ error: 'Contact already exists' });
+    }
+    
+    // Add contact to user's contact list
+    contacts[userId].push(contactId);
+    
+    // Initialize chat between users if it doesn't exist
+    if (!chats[userId][contactId]) {
+        chats[userId][contactId] = [];
+    }
+    
+    res.json({ message: 'Contact added successfully' });
 });
 
-// Fallback to index
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// Get user contacts
+app.get('/api/user/:userId/contacts', (req, res) => {
+    const userId = req.params.userId;
+    
+    if (!users[userId]) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const userContacts = contacts[userId].map(contactId => {
+        const contact = users[contactId];
+        return {
+            id: contact.id,
+            firstName: contact.firstName,
+            lastName: contact.lastName,
+            avatar: contact.avatar,
+            settings: contact.settings
+        };
+    });
+    
+    res.json(userContacts);
 });
 
-app.listen(PORT, () => {
-  console.log(`SMM Panel running on ${process.env.BASE_URL || "http://localhost:" + PORT}`);
+// Get chat messages
+app.get('/api/user/:userId/chats/:contactId', (req, res) => {
+    const userId = req.params.userId;
+    const contactId = req.params.contactId;
+    
+    if (!users[userId] || !users[contactId]) {
+        return res.status(404).json({ error: 'User or contact not found' });
+    }
+    
+    const userChats = chats[userId][contactId] || [];
+    res.json(userChats);
+});
+
+// Send message
+app.post('/api/user/:userId/chats/:contactId', (req, res) => {
+    const userId = req.params.userId;
+    const contactId = req.params.contactId;
+    const { message } = req.body;
+    
+    if (!users[userId] || !users[contactId]) {
+        return res.status(404).json({ error: 'User or contact not found' });
+    }
+    
+    if (!message || message.trim() === '') {
+        return res.status(400).json({ error: 'Message cannot be empty' });
+    }
+    
+    const timestamp = Date.now();
+    const newMessage = {
+        sender: userId,
+        message: message.trim(),
+        timestamp,
+        read: false
+    };
+    
+    // Add message to sender's chat
+    if (!chats[userId][contactId]) {
+        chats[userId][contactId] = [];
+    }
+    chats[userId][contactId].push(newMessage);
+    
+    // Add message to recipient's chat
+    if (!chats[contactId][userId]) {
+        chats[contactId][userId] = [];
+    }
+    chats[contactId][userId].push({ ...newMessage, read: false });
+    
+    // Notify recipient via socket.io if online
+    const recipientSocket = getUserSocket(contactId);
+    if (recipientSocket) {
+        recipientSocket.emit('newMessage', {
+            from: userId,
+            message: newMessage
+        });
+    }
+    
+    res.json({ message: 'Message sent successfully', timestamp });
+});
+
+// Mark messages as read
+app.put('/api/user/:userId/chats/:contactId/read', (req, res) => {
+    const userId = req.params.userId;
+    const contactId = req.params.contactId;
+    
+    if (!users[userId] || !users[contactId]) {
+        return res.status(404).json({ error: 'User or contact not found' });
+    }
+    
+    if (chats[userId][contactId]) {
+        chats[userId][contactId].forEach(msg => {
+            if (msg.sender === contactId && !msg.read) {
+                msg.read = true;
+            }
+        });
+    }
+    
+    res.json({ message: 'Messages marked as read' });
+});
+
+// Add status
+app.post('/api/user/:userId/status', (req, res) => {
+    const userId = req.params.userId;
+    const { media, caption, type } = req.body;
+    
+    if (!users[userId]) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+    
+    if (!media) {
+        return res.status(400).json({ error: 'Media is required' });
+    }
+    
+    const newStatus = {
+        media,
+        caption: caption || '',
+        type: type || 'image',
+        timestamp: Date.now()
+    };
+    
+    statuses[userId].push(newStatus);
+    
+    // Notify contacts about new status
+    contacts[userId].forEach(contactId => {
+        const contactSocket = getUserSocket(contactId);
+        if (contactSocket) {
+            contactSocket.emit('newStatus', {
+                userId,
+                status: newStatus
+            });
+        }
+    });
+    
+    res.json({ message: 'Status added successfully', status: newStatus });
+});
+
+// Get user statuses
+app.get('/api/user/:userId/status', (req, res) => {
+    const userId = req.params.userId;
+    
+    if (!users[userId]) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(statuses[userId]);
+});
+
+// Add call record
+app.post('/api/user/:userId/calls', (req, res) => {
+    const userId = req.params.userId;
+    const { contactId, type, direction, missed } = req.body;
+    
+    if (!users[userId] || !users[contactId]) {
+        return res.status(404).json({ error: 'User or contact not found' });
+    }
+    
+    const newCall = {
+        contactId,
+        type,
+        direction,
+        missed: missed || false,
+        timestamp: Date.now()
+    };
+    
+    calls[userId].push(newCall);
+    
+    res.json({ message: 'Call recorded successfully', call: newCall });
+});
+
+// Get user call history
+app.get('/api/user/:userId/calls', (req, res) => {
+    const userId = req.params.userId;
+    
+    if (!users[userId]) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(calls[userId]);
+});
+
+// Socket.io connection handling
+const userSockets = {};
+
+function getUserSocket(userId) {
+    return userSockets[userId];
+}
+
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+    
+    socket.on('register', (userId) => {
+        userSockets[userId] = socket;
+        console.log(`User ${userId} registered with socket ${socket.id}`);
+        
+        // Set user as online
+        if (users[userId]) {
+            users[userId].settings.online = true;
+            users[userId].settings.lastSeen = Date.now();
+            
+            // Notify contacts about online status
+            contacts[userId].forEach(contactId => {
+                const contactSocket = getUserSocket(contactId);
+                if (contactSocket) {
+                    contactSocket.emit('userOnline', { userId });
+                }
+            });
+        }
+    });
+    
+    socket.on('typing', (data) => {
+        const { userId, contactId, isTyping } = data;
+        
+        // Notify the contact
+        const contactSocket = getUserSocket(contactId);
+        if (contactSocket) {
+            contactSocket.emit('typing', {
+                userId,
+                isTyping
+            });
+        }
+    });
+    
+    socket.on('disconnect', () => {
+        // Find which user disconnected
+        for (const [userId, userSocket] of Object.entries(userSockets)) {
+            if (userSocket === socket) {
+                console.log(`User ${userId} disconnected`);
+                
+                // Set user as offline
+                if (users[userId]) {
+                    users[userId].settings.online = false;
+                    users[userId].settings.lastSeen = Date.now();
+                    
+                    // Notify contacts about offline status
+                    contacts[userId].forEach(contactId => {
+                        const contactSocket = getUserSocket(contactId);
+                        if (contactSocket) {
+                            contactSocket.emit('userOffline', { userId });
+                        }
+                    });
+                }
+                
+                delete userSockets[userId];
+                break;
+            }
+        }
+    });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
