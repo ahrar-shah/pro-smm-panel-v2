@@ -140,14 +140,14 @@
       width: 100%;
     }
 
-    .grid.two {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 2rem;
+    .auth-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 70vh;
     }
 
-    /* Cards */
-    .card {
+    .auth-card {
       background: rgba(255, 255, 255, 0.95);
       border-radius: var(--border-radius);
       padding: 2.5rem;
@@ -157,9 +157,11 @@
       animation: cardAppear 0.8s ease;
       position: relative;
       overflow: hidden;
+      width: 100%;
+      max-width: 450px;
     }
 
-    .card:before {
+    .auth-card:before {
       content: '';
       position: absolute;
       top: 0;
@@ -169,12 +171,12 @@
       background: linear-gradient(to bottom, var(--primary), var(--secondary));
     }
 
-    .card:hover {
+    .auth-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
     }
 
-    .card h2 {
+    .auth-card h2 {
       color: var(--primary);
       margin-bottom: 1.5rem;
       text-align: center;
@@ -183,7 +185,7 @@
       padding-bottom: 0.5rem;
     }
 
-    .card h2:after {
+    .auth-card h2:after {
       content: '';
       position: absolute;
       bottom: 0;
@@ -276,6 +278,29 @@
     .btn.outline:hover {
       background: var(--primary);
       color: white;
+    }
+
+    .switch-auth {
+      text-align: center;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--gray-light);
+    }
+
+    .switch-auth p {
+      color: var(--gray);
+      margin-bottom: 0.5rem;
+    }
+
+    .switch-auth a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .switch-auth a:hover {
+      text-decoration: underline;
     }
 
     /* WhatsApp Float */
@@ -376,18 +401,6 @@
     }
 
     /* Responsive Design */
-    @media (max-width: 992px) {
-      .grid.two {
-        grid-template-columns: 1fr;
-        max-width: 600px;
-        margin: 0 auto;
-      }
-      
-      .card {
-        padding: 2rem;
-      }
-    }
-
     @media (max-width: 768px) {
       .nav {
         padding: 1rem;
@@ -434,7 +447,7 @@
         padding: 0.8rem;
       }
       
-      .card {
+      .auth-card {
         padding: 1.5rem;
       }
       
@@ -456,11 +469,11 @@
         font-size: 1.3rem;
       }
       
-      .card {
+      .auth-card {
         padding: 1.2rem;
       }
       
-      .card h2 {
+      .auth-card h2 {
         font-size: 1.7rem;
       }
       
@@ -493,8 +506,8 @@
     </div>
   </nav>
 
-  <div class="container grid two">
-    <div class="card">
+  <div class="container auth-container">
+    <div class="auth-card" id="loginCard">
       <h2>Login</h2>
       <form id="loginForm">
         <div class="form-group">
@@ -507,10 +520,14 @@
         </div>
         <button class="btn" type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
       </form>
+      <div class="switch-auth">
+        <p>Don't have an account?</p>
+        <a href="#" id="showSignup">Sign up here</a>
+      </div>
       <p id="loginMsg"></p>
     </div>
 
-    <div class="card">
+    <div class="auth-card" id="signupCard" style="display: none;">
       <h2>Sign Up</h2>
       <form id="signupForm">
         <div class="form-group">
@@ -535,6 +552,10 @@
         </div>
         <button class="btn" type="submit"><i class="fas fa-user-plus"></i> Create Account</button>
       </form>
+      <div class="switch-auth">
+        <p>Already have an account?</p>
+        <a href="#" id="showLogin">Login here</a>
+      </div>
       <p id="signupMsg"></p>
     </div>
   </div>
@@ -547,7 +568,20 @@
     <i class="fab fa-whatsapp"></i>
   </a>
 
-<script>
+  <script>
+    // Toggle between login and signup forms
+    document.getElementById('showSignup').addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('loginCard').style.display = 'none';
+      document.getElementById('signupCard').style.display = 'block';
+    });
+
+    document.getElementById('showLogin').addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('signupCard').style.display = 'none';
+      document.getElementById('loginCard').style.display = 'block';
+    });
+
     async function postJSON(url, data){
       const r = await fetch(url, {
         method: 'POST',
@@ -555,6 +589,11 @@
         body: JSON.stringify(data),
         credentials: 'include' // Important for sessions to work
       });
+      
+      if (!r.ok) {
+        throw new Error(`HTTP error! status: ${r.status}`);
+      }
+      
       return r.json();
     }
     
@@ -567,7 +606,11 @@
       loginMsg.className = '';
       
       try {
+        loginMsg.textContent = 'Logging in...';
+        loginMsg.className = '';
+        
         const res = await postJSON('/api/login', {username: f.get('username'), password: f.get('password')});
+        
         if(res.ok){ 
           loginMsg.textContent = 'Login successful! Redirecting...';
           loginMsg.className = 'success';
@@ -599,7 +642,18 @@
         return;
       }
       
+      // Password strength validation
+      const password = f.get('password');
+      if (password.length < 6) {
+        signupMsg.textContent = 'Password must be at least 6 characters long';
+        signupMsg.className = 'error';
+        return;
+      }
+      
       try {
+        signupMsg.textContent = 'Creating account...';
+        signupMsg.className = '';
+        
         const res = await postJSON('/api/signup',{
           username: f.get('username'), 
           name: f.get('name'), 
@@ -607,6 +661,7 @@
           phone: f.get('phone'), 
           password: f.get('password')
         });
+        
         if(res.ok){ 
           signupMsg.textContent = 'Account created successfully! Redirecting...';
           signupMsg.className = 'success';
@@ -633,6 +688,28 @@
         nav.classList.remove('open');
       }
     });
-</script>
+
+    // Check if user is already logged in
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/me', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            // User is already logged in, redirect to dashboard
+            window.location.href = '/dashboard.html';
+          }
+        }
+      } catch (error) {
+        console.log('Auth check failed:', error);
+      }
+    }
+
+    // Check authentication status on page load
+    window.addEventListener('load', checkAuth);
+  </script>
 </body>
 </html>
