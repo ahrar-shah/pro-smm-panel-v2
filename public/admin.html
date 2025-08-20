@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Admin – SMM Panel</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
+ <html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin – SMM Panel</title>
+   <style>
     /* CSS Variables for consistent theming */
     :root {
       --primary: #4361ee;
@@ -587,6 +592,140 @@
       }
     }
   </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="brand">AS SMM Panel (Admin)</div>
+    <button class="hamb btn outline" onclick="toggleMenu()">☰</button>
+    <div class="menu">
+      <a href="/dashboard.html">Dashboard</a>
+      <button class="btn outline" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container grid two">
+    <div class="card">
+      <h2>Orders</h2>
+      <table id="ordersTbl">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>User</th>
+            <th>Platform</th>
+            <th>Service</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Payment</th>
+            <th>Proof</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="ordersMsg"></p>
+    </div>
+
+    <div class="card">
+      <h2>Services</h2>
+      <div id="services"></div>
+      <hr/><br/>
+      <h3>Add Service</h3>
+      <form id="addService">
+        <label>Platform</label>
+        <input name="platform" placeholder="TikTok / Instagram / YouTube" required />
+        <label>Service Name</label>
+        <input name="name" placeholder="Followers / Likes / ..." required />
+        <label>Price (PKR per 1)</label>
+        <input name="price" type="number" step="0.01" required />
+        <br/>
+        <button class="btn" type="submit">Add</button>
+      </form>
+      <p id="svcMsg"></p>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu(){ document.getElementById('nav').classList.toggle('open'); }
+    async function me(){
+      const r = await fetch('/api/me'); const j = await r.json();
+      if(!j.user) return location.href='/';
+      if(!j.admin){ alert('Admin only. Login as admin Gmail.'); return location.href='/'; }
+    }
+    async function loadOrders(){
+      const r = await fetch('/api/admin/orders');
+      const j = await r.json();
+      if(!j.orders){ document.getElementById('ordersMsg').textContent=j.error||'No orders'; return; }
+      const tb = document.querySelector('#ordersTbl tbody');
+      tb.innerHTML = j.orders.map(o=>`
+        <tr>
+          <td>${o.id}</td>
+          <td>${o.user.name}<br/>@${o.user.username}<br/>${o.user.email}<br/>${o.user.phone}</td>
+          <td>${o.platform}</td>
+          <td>${o.service}</td>
+          <td>${o.quantity}</td>
+          <td>${o.price} PKR</td>
+          <td>${o.payment}</td>
+          <td>${o.screenshot ? `<a href="/uploads/${o.screenshot.storedAs}" target="_blank">View</a>` : '-'}</td>
+          <td>${new Date(o.createdAt).toLocaleString()}</td>
+          <td>${o.status==='done' ? '<span class="status done">done</span>' : '<span class="status progress">in progress</span>'}</td>
+          <td>
+            <button class="btn" onclick="setStatus('${o.id}','done')">Done</button>
+            <button class="btn outline" onclick="setStatus('${o.id}','in progress')">In Progress</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+    async function setStatus(id, status){
+      await fetch('/api/admin/orders/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status})});
+      loadOrders();
+    }
+
+    async function loadServices(){
+      const r = await fetch('/api/services'); const j = await r.json();
+      const root = document.getElementById('services');
+      root.innerHTML = (j.services||[]).map(p=>`
+        <div class="card" style="margin:10px 0">
+          <div class="badge"><b>${p.platform}</b></div><br/>
+          <table><tbody>
+            ${p.services.map(s=>`
+              <tr>
+                <td>${s.name}</td>
+                <td>${s.price} PKR</td>
+                <td>${s.active ? '✅ Active' : '🚫 Inactive'}</td>
+                <td>
+                  <button class="btn" onclick="toggleSvc('${p.platform}','${s.name}', ${!s.active})">${s.active?'Disable':'Enable'}</button>
+                  <button class="btn outline" onclick="delSvc('${p.platform}','${s.name}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody></table>
+        </div>
+      `).join('');
+    }
+    async function toggleSvc(platform,name,active){
+      await fetch('/api/admin/services/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,name,active})});
+      loadServices();
+    }
+    async function delSvc(platform,name){
+      await fetch('/api/admin/services/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,name})});
+      loadServices();
+    }
+    document.getElementById('addService').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const f = new FormData(e.target);
+      const r = await fetch('/api/admin/services/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:f.get('platform'),name:f.get('name'),price:f.get('price')})});
+      const j = await r.json();
+      document.getElementById('svcMsg').textContent = j.ok ? 'Added' : (j.error||'Failed');
+      if(j.ok){ e.target.reset(); loadServices(); }
+    });
+    function logout(){ fetch('/api/logout',{method:'POST'}).then(()=>location.href='/'); }
+
+    me().then(()=>{ loadOrders(); loadServices(); });
+  </script>
+</body>
+</html>
 </head>
 <body>
   <nav class="nav" id="nav">
