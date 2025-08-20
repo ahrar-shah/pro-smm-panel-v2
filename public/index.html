@@ -416,27 +416,58 @@
 
   <a class="float-whatsapp" href="https://wa.me/923702723151" target="_blank">💬</a>
 
-  <script>
+<script>
     async function postJSON(url, data){
-      const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data),
+        credentials: 'include' // Important for sessions to work
+      });
       return r.json();
     }
+    
     document.getElementById('loginForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
       const f = new FormData(e.target);
-      const res = await postJSON('/api/login',{username:f.get('username'),password:f.get('password')});
-      if(res.ok){ location.href='/dashboard.html'; } else { document.getElementById('loginMsg').textContent=res.error||'Login failed'; }
+      try {
+        const res = await postJSON('/api/login', {username: f.get('username'), password: f.get('password')});
+        if(res.ok){ 
+          location.href = '/dashboard.html'; 
+        } else { 
+          document.getElementById('loginMsg').textContent = res.error || 'Login failed'; 
+        }
+      } catch (error) {
+        document.getElementById('loginMsg').textContent = 'Connection error. Please try again.';
+        console.error('Login error:', error);
+      }
     });
+    
     document.getElementById('signupForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
       const f = new FormData(e.target);
-      const res = await postJSON('/api/signup',{
-        username:f.get('username'), name:f.get('name'), email:f.get('email'),
-        phone:f.get('phone'), password:f.get('password')
-      });
-      if(res.ok){ location.href='/dashboard.html'; } else { document.getElementById('signupMsg').textContent=res.error||'Signup failed'; }
+      try {
+        const res = await postJSON('/api/signup',{
+          username: f.get('username'), 
+          name: f.get('name'), 
+          email: f.get('email'),
+          phone: f.get('phone'), 
+          password: f.get('password')
+        });
+        if(res.ok){ 
+          location.href = '/dashboard.html'; 
+        } else { 
+          document.getElementById('signupMsg').textContent = res.error || 'Signup failed'; 
+        }
+      } catch (error) {
+        document.getElementById('signupMsg').textContent = 'Connection error. Please try again.';
+        console.error('Signup error:', error);
+      }
     });
-    function toggleMenu(){ document.getElementById('nav').classList.toggle('open'); }
-  </script>
+    
+    function toggleMenu(){ 
+      document.getElementById('nav').classList.toggle('open'); 
+    }
+</script>
 </body>
 </html>
