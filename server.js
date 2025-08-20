@@ -7,7 +7,6 @@ import nodemailer from "nodemailer";
 import { v4 as uuidv4 } from "uuid";
 import { fileURLToPath } from "url";
 import path from "path";
-import fs from "fs";
 
 dotenv.config();
 
@@ -69,12 +68,13 @@ if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
 
 // Session configuration for Vercel
 const sessionConfig = {
-  secret: process.env.SESSION_SECRET || "change_me",
+  secret: process.env.SESSION_SECRET || "change_me_in_production",
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
 };
 
@@ -93,7 +93,17 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // CORS middleware for Vercel
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  const allowedOrigins = [
+    'http://localhost:3000', 
+    'https://zappy-smm-panelun.vercel.app',
+    'https://zappy-smm-panel.vercel.app'
+  ];
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
