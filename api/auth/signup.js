@@ -1,27 +1,20 @@
-const { readJSON, writeJSON } = require("../utils/db");
-const { randomUUID } = require("crypto");
+import fs from "fs";
+import path from "path";
 
-module.exports = (req, res) => {
-  if (req.method !== "POST") return res.status(405).end();
+export default async function handler(req, res) {
+  if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
 
   const { username, name, email, password } = req.body;
+  const filePath = path.join(process.cwd(), "data", "users.json");
+  const users = JSON.parse(fs.readFileSync(filePath, "utf8"));
 
-  let users = readJSON("users.json");
-  if (users.find((u) => u.username === username || u.email === email)) {
-    return res.status(400).json({ error: "User already exists" });
+  if (users.find(u => u.username === username)) {
+    return res.json({ success: false, message: "Username already exists" });
   }
 
-  const newUser = {
-    id: randomUUID(),
-    username,
-    name,
-    email,
-    password, // plain for demo, hash in prod
-  };
-
+  const newUser = { id: Date.now(), username, name, email, password };
   users.push(newUser);
-  writeJSON("users.json", users);
+  fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
 
-  res.setHeader("Set-Cookie", `uid=${newUser.id}; Path=/; HttpOnly`);
-  res.json({ success: true, user: newUser });
-};
+  return res.json({ success: true, user: newUser });
+}
