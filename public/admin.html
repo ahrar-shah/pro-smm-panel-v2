@@ -1,113 +1,572 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin – SMM Panel</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 8px; border: 1px solid #ccc; }
-    button { padding: 5px 10px; margin: 2px; }
+    /* CSS Variables for consistent theming */
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #7209b7;
+      --accent: #f72585;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9f0;
+      --warning: #f9c74f;
+      --danger: #f94144;
+      --gray: #6c757d;
+      --gray-light: #e9ecef;
+      --border-radius: 12px;
+      --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+      animation: gradientShift 15s ease infinite;
+      background-size: 200% 200%;
+    }
+
+    /* Navigation */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.5s ease;
+    }
+
+    .brand {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fadeIn 1s ease;
+    }
+
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .menu a {
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: 500;
+      position: relative;
+      padding: 0.5rem 0;
+      transition: var(--transition);
+    }
+
+    .menu a:after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      transition: var(--transition);
+    }
+
+    .menu a:hover {
+      color: var(--primary);
+    }
+
+    .menu a:hover:after {
+      width: 100%;
+    }
+
+    .hamb {
+      display: none;
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      border-radius: var(--border-radius);
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .hamb:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Main Content */
+    .container {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 1rem;
+      animation: fadeIn 0.8s ease;
+    }
+
+    .grid.two {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      animation: cardAppear 0.8s ease;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h2 {
+      color: var(--primary);
+      margin-bottom: 1rem;
+      font-size: 2rem;
+      border-bottom: 2px solid var(--gray-light);
+      padding-bottom: 0.5rem;
+    }
+
+    .card h3 {
+      color: var(--secondary);
+      margin: 1.5rem 0 1rem;
+      font-size: 1.5rem;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-light);
+    }
+
+    th {
+      background: var(--gray-light);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:hover {
+      background: rgba(67, 97, 238, 0.05);
+    }
+
+    /* Badge */
+    .badge {
+      background: var(--gray-light);
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+      transition: var(--transition);
+    }
+
+    .badge:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Status Indicators */
+    .status {
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .status.done {
+      background: rgba(76, 201, 240, 0.2);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+
+    .status.progress {
+      background: rgba(249, 199, 79, 0.2);
+      color: var(--warning);
+      border: 1px solid var(--warning);
+    }
+
+    /* Forms */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    label {
+      font-weight: 500;
+      color: var(--dark);
+      margin-bottom: -0.5rem;
+    }
+
+    input, select, textarea {
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--gray-light);
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.6rem 1.2rem;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+      display: inline-block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+
+    .btn:hover:before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+    }
+
+    .btn.outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn.outline:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Messages */
+    #ordersMsg, #svcMsg {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    #svcMsg {
+      background: rgba(76, 201, 240, 0.2);
+      border-left: 4px solid var(--success);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-100%); }
+      to { transform: translateY(0); }
+    }
+
+    @keyframes cardAppear {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .grid.two {
+        grid-template-columns: 1fr;
+      }
+      
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav {
+        padding: 1rem;
+      }
+      
+      .menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 1rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-10px);
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+        gap: 0;
+      }
+      
+      .menu a, .menu button {
+        width: 100%;
+        padding: 0.8rem;
+        border-bottom: 1px solid var(--gray-light);
+        text-align: left;
+        justify-content: flex-start;
+      }
+      
+      .menu a:last-child, .menu button:last-child {
+        border-bottom: none;
+      }
+      
+      .nav.open .menu {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      .hamb {
+        display: block;
+      }
+      
+      .container {
+        margin: 1rem auto;
+        padding: 0.5rem;
+      }
+      
+      .card {
+        padding: 1.5rem;
+      }
+      
+      th, td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .brand {
+        font-size: 1.5rem;
+      }
+      
+      .card {
+        padding: 1.2rem;
+      }
+      
+      .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+      
+      .card h2 {
+        font-size: 1.5rem;
+      }
+      
+      .card h3 {
+        font-size: 1.2rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>Admin Panel</h2>
-  <button onclick="loadOrders()">Refresh Orders</button>
-  <button onclick="loadServices()">Refresh Services</button>
+  <nav class="nav" id="nav">
+    <div class="brand">AS SMM Panel (Admin)</div>
+    <button class="hamb btn outline" onclick="toggleMenu()">☰</button>
+    <div class="menu">
+      <a href="/dashboard.html">Dashboard</a>
+      <button class="btn outline" onclick="logout()">Logout</button>
+    </div>
+  </nav>
 
-  <h3>Add Service</h3>
-  <form id="serviceForm">
-    <input type="text" id="platform" placeholder="Platform (e.g. tiktok)" required>
-    <input type="text" id="name" placeholder="Service Name" required>
-    <input type="number" id="price" placeholder="Price" required>
-    <button type="submit">Add</button>
-  </form>
+  <div class="container grid two">
+    <div class="card">
+      <h2>Orders</h2>
+      <table id="ordersTbl">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>User</th>
+            <th>Platform</th>
+            <th>Service</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Payment</th>
+            <th>Proof</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="ordersMsg"></p>
+    </div>
 
-  <h3>Orders</h3>
-  <table id="ordersTable">
-    <thead>
-      <tr><th>ID</th><th>Platform</th><th>Service</th><th>User</th><th>Amount</th><th>Status</th><th>Proof</th><th>Action</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <h3>Services</h3>
-  <ul id="servicesList"></ul>
+    <div class="card">
+      <h2>Services</h2>
+      <div id="services"></div>
+      <hr/><br/>
+      <h3>Add Service</h3>
+      <form id="addService">
+        <label>Platform</label>
+        <input name="platform" placeholder="TikTok / Instagram / YouTube" required />
+        <label>Service Name</label>
+        <input name="name" placeholder="Followers / Likes / ..." required />
+        <label>Price (PKR per 1)</label>
+        <input name="price" type="number" step="0.01" required />
+        <br/>
+        <button class="btn" type="submit">Add</button>
+      </form>
+      <p id="svcMsg"></p>
+    </div>
+  </div>
 
   <script>
-    async function loadOrders() {
-      const res = await fetch('/api/orders/list');
-      const data = await res.json();
-      const tbody = document.querySelector('#ordersTable tbody');
-      tbody.innerHTML = '';
-      data.orders.forEach(o => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+    function toggleMenu(){ document.getElementById('nav').classList.toggle('open'); }
+    async function me(){
+      const r = await fetch('/api/me'); const j = await r.json();
+      if(!j.user) return location.href='/';
+      if(!j.admin){ alert('Admin only. Login as admin Gmail.'); return location.href='/'; }
+    }
+    async function loadOrders(){
+      const r = await fetch('/api/admin/orders');
+      const j = await r.json();
+      if(!j.orders){ document.getElementById('ordersMsg').textContent=j.error||'No orders'; return; }
+      const tb = document.querySelector('#ordersTbl tbody');
+      tb.innerHTML = j.orders.map(o=>`
+        <tr>
           <td>${o.id}</td>
+          <td>${o.user.name}<br/>@${o.user.username}<br/>${o.user.email}<br/>${o.user.phone}</td>
           <td>${o.platform}</td>
           <td>${o.service}</td>
-          <td>${o.username}</td>
-          <td>${o.amount}</td>
-          <td>${o.status}</td>
-          <td><img src="${o.proof}" width="60"/></td>
+          <td>${o.quantity}</td>
+          <td>${o.price} PKR</td>
+          <td>${o.payment}</td>
+          <td>${o.screenshot ? `<a href="/uploads/${o.screenshot.storedAs}" target="_blank">View</a>` : '-'}</td>
+          <td>${new Date(o.createdAt).toLocaleString()}</td>
+          <td>${o.status==='done' ? '<span class="status done">done</span>' : '<span class="status progress">in progress</span>'}</td>
           <td>
-            <button onclick="updateStatus('${o.id}','In Progress')">In Progress</button>
-            <button onclick="updateStatus('${o.id}','Completed')">Completed</button>
-            <button onclick="updateStatus('${o.id}','Rejected')">Rejected</button>
+            <button class="btn" onclick="setStatus('${o.id}','done')">Done</button>
+            <button class="btn outline" onclick="setStatus('${o.id}','in progress')">In Progress</button>
           </td>
-        `;
-        tbody.appendChild(tr);
-      });
+        </tr>
+      `).join('');
     }
-
-    async function updateStatus(id, status) {
-      await fetch('/api/orders/list', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status })
-      });
+    async function setStatus(id, status){
+      await fetch('/api/admin/orders/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status})});
       loadOrders();
     }
 
-    async function loadServices() {
-      const res = await fetch('/api/services/list');
-      const data = await res.json();
-      const list = document.getElementById('servicesList');
-      list.innerHTML = '';
-      data.services.forEach(p => {
-        const li = document.createElement('li');
-        li.innerHTML = `<b>${p.platform}:</b> ${p.services.map(s => s.name + "($" + s.price + ")").join(", ")} 
-          <button onclick="deleteService('${p.platform}','${p.services[0].name}')">Delete First</button>`;
-        list.appendChild(li);
-      });
+    async function loadServices(){
+      const r = await fetch('/api/services'); const j = await r.json();
+      const root = document.getElementById('services');
+      root.innerHTML = (j.services||[]).map(p=>`
+        <div class="card" style="margin:10px 0">
+          <div class="badge"><b>${p.platform}</b></div><br/>
+          <table><tbody>
+            ${p.services.map(s=>`
+              <tr>
+                <td>${s.name}</td>
+                <td>${s.price} PKR</td>
+                <td>${s.active ? '✅ Active' : '🚫 Inactive'}</td>
+                <td>
+                  <button class="btn" onclick="toggleSvc('${p.platform}','${s.name}', ${!s.active})">${s.active?'Disable':'Enable'}</button>
+                  <button class="btn outline" onclick="delSvc('${p.platform}','${s.name}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody></table>
+        </div>
+      `).join('');
     }
-
-    async function deleteService(platform, name) {
-      await fetch('/api/services/list', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform, name })
-      });
+    async function toggleSvc(platform,name,active){
+      await fetch('/api/admin/services/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,name,active})});
       loadServices();
     }
-
-    document.getElementById('serviceForm').addEventListener('submit', async e => {
+    async function delSvc(platform,name){
+      await fetch('/api/admin/services/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,name})});
+      loadServices();
+    }
+    document.getElementById('addService').addEventListener('submit', async (e)=>{
       e.preventDefault();
-      const body = {
-        platform: document.getElementById('platform').value,
-        name: document.getElementById('name').value,
-        price: document.getElementById('price').value
-      };
-      await fetch('/api/services/list', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      loadServices();
+      const f = new FormData(e.target);
+      const r = await fetch('/api/admin/services/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:f.get('platform'),name:f.get('name'),price:f.get('price')})});
+      const j = await r.json();
+      document.getElementById('svcMsg').textContent = j.ok ? 'Added' : (j.error||'Failed');
+      if(j.ok){ e.target.reset(); loadServices(); }
     });
+    function logout(){ fetch('/api/logout',{method:'POST'}).then(()=>location.href='/'); }
 
-    loadOrders();
-    loadServices();
+    me().then(()=>{ loadOrders(); loadServices(); });
   </script>
 </body>
 </html>
