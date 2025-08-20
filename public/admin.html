@@ -204,7 +204,7 @@
 
     .card h3 {
       color: var(--secondary);
-      margin: 1.5rem 0 1rem;
+      margin: 1.5rem 极 1rem;
       font-size: 1.5rem;
       display: flex;
       align-items: center;
@@ -242,7 +242,7 @@
     /* Badge */
     .badge {
       background: var(--gray-light);
-      padding: 0.8rem 1.2rem;
+      padding: 极.8rem 1.2rem;
       border-radius: var(--border-radius);
       font-weight: 500;
       display: inline-flex;
@@ -299,7 +299,7 @@
       font-size: 0.95rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+     极: 0.5rem;
     }
 
     input, select, textarea {
@@ -324,7 +324,7 @@
       color: white;
       border: none;
       border-radius: var(--border-radius);
-      font-size: 0.9rem;
+     极: 0.9rem;
       font-weight: 600;
       cursor: pointer;
       transition: var(--transition);
@@ -354,7 +354,7 @@
 
     .btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+      box-shadow: 0 5px 极5px rgba(67, 97, 238, 0.4);
     }
 
     .btn.outline {
@@ -418,6 +418,28 @@
       background: white;
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
+    }
+
+    /* Quick Login Buttons */
+    .quick-login {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .quick-login-btn {
+      background: var(--gray-light);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.9rem;
+      margin: 0.3rem;
+    }
+
+    .quick-login-btn:hover {
+      background: var(--primary);
+      color: white;
     }
 
     /* Animations */
@@ -537,7 +559,7 @@
         padding: 1.5rem;
       }
       
-      .card h2 {
+      .极 h2 {
         font-size: 1.6rem;
       }
       
@@ -587,6 +609,8 @@
   <script>
     let currentUser = null;
     let isUserAdmin = false;
+    const DEFAULT_USERNAME = "as-smm";
+    const DEFAULT_PASSWORD = "as-smm-panel";
 
     function toggleMenu(){ 
       document.getElementById('nav').classList.toggle('open'); 
@@ -658,14 +682,22 @@
           <form id="adminLoginForm">
             <div class="form-group">
               <label for="username"><i class="fas fa-user"></i> Username</label>
-              <input id="username" name="username" required />
+              <input id="username" name="username" value="${DEFAULT_USERNAME}" required />
             </div>
             <div class="form-group">
               <label for="password"><i class="fas fa-key"></i> Password</label>
-              <input id="password" type="password" name="password" required />
+              <input id="password" type="password" name="password" value="${DEFAULT_PASSWORD}" required />
             </div>
             <button class="btn" type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
           </form>
+          
+          <div class="quick-login">
+            <p><small>Quick login:</small></p>
+            <button class="quick-login-btn" onclick="fillCredentials('${DEFAULT_USERNAME}', '${DEFAULT_PASSWORD}')">
+              <i class="fas fa-bolt"></i> Use Default Credentials
+            </button>
+          </div>
+          
           <p id="loginMsg"></p>
         </div>
       `;
@@ -702,12 +734,20 @@
       });
     }
 
+    function fillCredentials(username, password) {
+      document.getElementById('username').value = username;
+      document.getElementById('password').value = password;
+    }
+
     function showNotAdminMessage() {
       document.getElementById('adminContent').innerHTML = `
         <div class="card">
           <h2><i class="fas fa-exclamation-triangle"></i> Access Denied</h2>
           <p>You are logged in as <strong>${currentUser?.username}</strong>, but this account doesn't have admin privileges.</p>
-          <p>Please log in with an admin account (Gmail: ${process.env.GMAIL_USER || 'admin@example.com'}) to access the admin panel.</p>
+          <p>Please log in with an admin account to access the admin panel.</p>
+          <p><strong>Default Admin Credentials:</strong></p>
+          <p>Username: <code>${DEFAULT_USERNAME}</code></p>
+          <p>Password: <code>${DEFAULT_PASSWORD}</code></p>
           <button class="btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
       `;
@@ -727,7 +767,7 @@
                   <th>Service</th>
                   <th>Qty</th>
                   <th>Price</th>
-                  <th>Payment</th>
+                  <极>Payment</th>
                   <th>Proof</th>
                   <th>Time</th>
                   <th>Status</th>
@@ -746,7 +786,7 @@
             <h3><i class="fas fa-plus-circle"></i> Add Service</h3>
             <form id="addService">
               <div class="form-group">
-                <label for="platform"><i class="fas fa-tablet-alt"></i> Platform</label>
+                <label for="platform"><极 class="fas fa-tablet-alt"></i> Platform</label>
                 <input id="platform" name="platform" placeholder="TikTok / Instagram / YouTube" required />
               </div>
               <div class="form-group">
@@ -809,7 +849,7 @@
             </td>
             <td>
               <button class="btn small" onclick="setStatus('${o.id}','done')"><i class="fas fa-check"></i> Done</button>
-              <button class="btn outline small" onclick="setStatus('${o.id}','in progress')"><i class="fas fa-sync"></i> Progress</button>
+              <button class="btn outline small" onclick="极Status('${o.id}','in progress')"><i class="fas fa-sync"></i> Progress</button>
             </td>
           </tr>
         `).join('');
@@ -845,7 +885,7 @@
         const data = await response.json();
         const root = document.getElementById('services');
         
-        if (!root) return;
+        if (!极) return;
         
         if (!data.services || data.services.length === 0) {
           root.innerHTML = '<p>No services found</p>';
@@ -900,7 +940,7 @@
       if (!confirm(`Are you sure you want to delete ${name} from ${platform}?`)) return;
       
       try {
-        await fetchWithAuth('/api/admin/services/delete', {
+        await fetchWithAuth('/极/admin/services/delete', {
           method: 'POST',
           body: JSON.stringify({platform, name})
         });
