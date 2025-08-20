@@ -52,35 +52,9 @@ if (services.length === 0) {
   ];
 }
 
-const UPLOADS_DIR = path.join(__dirname, "uploads");
-
-// Ensure uploads directory exists
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
-
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "change_me",
-    resave: false,
-    saveUninitialized: false,
-  })
-);
-
-app.use("/uploads", express.static(UPLOADS_DIR));
-app.use(express.static(path.join(__dirname, "public")));
-
-// Multer for screenshot uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || "");
-    cb(null, `${Date.now()}-${uuidv4()}${ext}`);
-  },
-});
-const upload = multer({ storage });
+// For Vercel, we need to handle file uploads differently
+const memoryStorage = multer.memoryStorage();
+const upload = multer({ storage: memoryStorage });
 
 // Nodemailer transporter
 let transporter;
@@ -92,6 +66,44 @@ if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
 } else {
   console.log("Email notifications disabled - GMAIL_USER/GMAIL_PASS not set");
 }
+
+// Session configuration for Vercel
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET || "change_me",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+};
+
+// If in production, trust the proxy (Vercel)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+  sessionConfig.cookie.secure = true;
+}
+
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true }));
+app.use(session(sessionConfig));
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, "public")));
+
+// CORS middleware for Vercel
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
 
 // Helpers
 const authRequired = (req, res, next) => {
@@ -220,7 +232,11 @@ app.post("/api/order", authRequired, upload.single("screenshot"), async (req, re
 
     const id = Date.now().toString(); // simple order id
     const screenshot = req.file
-      ? { filename: req.file.originalname, storedAs: path.basename(req.file.path), path: req.file.path }
+      ? { 
+          filename: req.file.originalname, 
+          buffer: req.file.buffer.toString('base64'),
+          mimetype: req.file.mimetype
+        }
       : null;
 
     const order = {
@@ -248,7 +264,7 @@ app.post("/api/order", authRequired, upload.single("screenshot"), async (req, re
     // Email to admin (your Gmail)
     if (transporter) {
       try {
-        await transporter.sendMail({
+        const mailOptions = {
           from: process.env.GMAIL_USER,
           to: process.env.GMAIL_USER,
           subject: `New Order #${id} from ${order.user.name}`,
@@ -267,11 +283,18 @@ app.post("/api/order", authRequired, upload.single("screenshot"), async (req, re
             <p><b>Email:</b> ${order.user.email}</p>
             <p><b>Phone:</b> ${order.user.phone}</p>
             <p><b>Time:</b> ${order.createdAt}</p>
-          `,
-          attachments: order.screenshot
-            ? [{ filename: order.screenshot.filename || "proof.png", path: order.screenshot.path }]
-            : [],
-        });
+          `
+        };
+
+        if (screenshot) {
+          mailOptions.attachments = [{
+            filename: screenshot.filename || "proof.png",
+            content: screenshot.buffer,
+            encoding: 'base64'
+          }];
+        }
+
+        await transporter.sendMail(mailOptions);
       } catch (emailError) {
         console.error("Email sending failed:", emailError);
       }
@@ -323,11 +346,15 @@ app.get("/contact.html", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "contact.html"));
 });
 
+// Health check endpoint for Vercel
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
+});
+
 // Fallback to index
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`SMM Panel running on ${process.env.BASE_URL || "http://localhost:" + PORT}`);
-});
+// Export the app for Vercel
+export default app;
