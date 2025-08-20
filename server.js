@@ -6,6 +6,8 @@ import multer from "multer";
 import nodemailer from "nodemailer";
 import { v4 as uuidv4 } from "uuid";
 import { fileURLToPath } from "url";
+import path from "path";
+import fs from "fs";
 
 dotenv.config();
 
@@ -53,7 +55,6 @@ if (services.length === 0) {
 const UPLOADS_DIR = path.join(__dirname, "uploads");
 
 // Ensure uploads directory exists
-import fs from "fs";
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
@@ -82,10 +83,15 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-});
+let transporter;
+if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
+  transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+  });
+} else {
+  console.log("Email notifications disabled - GMAIL_USER/GMAIL_PASS not set");
+}
 
 // Helpers
 const authRequired = (req, res, next) => {
@@ -145,6 +151,7 @@ app.post("/api/login", async (req, res) => {
     req.session.user = { id: user.id, username: user.username, name: user.name, email: user.email, phone: user.phone };
     res.json({ ok: true, user: req.session.user });
   } catch (e) {
+    console.error("Login error:", e);
     res.status(500).json({ error: "Login failed" });
   }
 });
@@ -239,7 +246,7 @@ app.post("/api/order", authRequired, upload.single("screenshot"), async (req, re
     orders.push(order);
 
     // Email to admin (your Gmail)
-    if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
+    if (transporter) {
       try {
         await transporter.sendMail({
           from: process.env.GMAIL_USER,
@@ -294,6 +301,26 @@ app.get("/api/my-orders", authRequired, async (req, res) => {
   const userOrders = orders.filter(o => o.userId === req.session.user.id)
                           .sort((a, b) => b.id.localeCompare(a.id));
   res.json({ orders: userOrders });
+});
+
+// Serve dashboard and other pages
+app.get("/dashboard.html", (req, res) => {
+  if (!req.session.user) {
+    return res.redirect("/");
+  }
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+
+app.get("/payments.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "payments.html"));
+});
+
+app.get("/terms.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "terms.html"));
+});
+
+app.get("/contact.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "contact.html"));
 });
 
 // Fallback to index
