@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Contact – SMM Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     /* CSS Variables for consistent theming */
     :root {
@@ -40,6 +41,8 @@
       margin: 0;
       animation: gradientShift 15s ease infinite;
       background-size: 200% 200%;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Navigation */
@@ -65,6 +68,13 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: fadeIn 1s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand i {
+      font-size: 1.5rem;
     }
 
     .menu {
@@ -79,6 +89,9 @@
       position: relative;
       padding: 0.5rem 0;
       transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .menu a:after {
@@ -109,6 +122,7 @@
       padding: 0.5rem;
       cursor: pointer;
       transition: var(--transition);
+      font-size: 1.2rem;
     }
 
     .hamb:hover {
@@ -118,10 +132,12 @@
 
     /* Main Content */
     .container {
-      max-width: 800px;
+      max-width: 1000px;
       margin: 2rem auto;
       padding: 1rem;
       animation: fadeIn 0.8s ease;
+      flex: 1;
+      width: 100%;
     }
 
     /* Cards */
@@ -133,7 +149,18 @@
       transition: var(--transition);
       backdrop-filter: blur(10px);
       animation: cardAppear 0.8s ease;
-      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--primary), var(--secondary));
     }
 
     .card:hover {
@@ -145,8 +172,21 @@
       color: var(--primary);
       margin-bottom: 2rem;
       font-size: 2.2rem;
-      border-bottom: 2px solid var(--gray-light);
+      text-align: center;
+      position: relative;
       padding-bottom: 0.8rem;
+    }
+
+    .card h2:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      border-radius: 2px;
     }
 
     /* Contact Methods */
@@ -154,14 +194,14 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 2rem;
-      margin: 2rem 0;
+      margin: 2.5rem 0;
     }
 
     .contact-card {
       background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
       color: white;
       border-radius: var(--border-radius);
-      padding: 2rem;
+      padding: 2.5rem 2rem;
       box-shadow: var(--box-shadow);
       transition: var(--transition);
       position: relative;
@@ -171,6 +211,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
+      min-height: 250px;
     }
 
     .contact-card:before {
@@ -190,10 +231,17 @@
     }
 
     .contact-icon {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
+      font-size: 2.8rem;
+      margin-bottom: 1.2rem;
       position: relative;
       z-index: 1;
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
     }
 
     .contact-card h3 {
@@ -201,7 +249,7 @@
       margin-bottom: 1rem;
       position: relative;
       z-index: 1;
-      font-size: 1.3rem;
+      font-size: 1.4rem;
     }
 
     .contact-card p, .contact-card a {
@@ -223,26 +271,31 @@
     .support-hours {
       background: rgba(76, 201, 240, 0.1);
       border-radius: var(--border-radius);
-      padding: 1.5rem;
-      margin: 2rem 0;
+      padding: 2rem;
+      margin: 2.5rem 0;
       border-left: 4px solid var(--success);
+      text-align: center;
     }
 
     .support-hours h3 {
       color: var(--primary);
-      margin-bottom: 1rem;
-      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
 
     .support-hours ul {
       list-style: none;
-      text-align: left;
-      max-width: 300px;
+      text-align: center;
+      max-width: 400px;
       margin: 0 auto;
     }
 
     .support-hours li {
-      padding: 0.5rem 0;
+      padding: 0.8rem 0;
       display: flex;
       justify-content: space-between;
       border-bottom: 1px dashed var(--gray-light);
@@ -250,6 +303,21 @@
 
     .support-hours li:last-child {
       border-bottom: none;
+    }
+
+    /* Footer */
+    footer {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 1.5rem;
+      text-align: center;
+      margin-top: auto;
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--gray-light);
+    }
+
+    footer p {
+      color: var(--gray);
+      font-size: 0.9rem;
     }
 
     /* WhatsApp Float */
@@ -270,6 +338,7 @@
       transition: var(--transition);
       animation: pulse 2s infinite;
       z-index: 1000;
+      font-size: 1.5rem;
     }
 
     .float-whatsapp:hover {
@@ -307,8 +376,8 @@
 
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
-     70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
-     100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+      70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
     }
 
     @keyframes contactAppear {
@@ -329,8 +398,8 @@
       }
       
       .menu {
-        position: absolute;
-        top: 100%;
+        position: fixed;
+        top: 70px;
         left: 0;
         right: 0;
         background: white;
@@ -341,11 +410,13 @@
         opacity: 0;
         visibility: hidden;
         transition: var(--transition);
+        z-index: 999;
       }
       
       .menu a {
         padding: 0.8rem;
         border-bottom: 1px solid var(--gray-light);
+        justify-content: center;
       }
       
       .menu a:last-child {
@@ -364,7 +435,7 @@
       
       .container {
         margin: 1rem auto;
-        padding: 0.5rem;
+        padding: 0.8rem;
       }
       
       .card {
@@ -381,13 +452,26 @@
       }
       
       .contact-card {
-        padding: 1.5rem;
+        padding: 2rem 1.5rem;
+        min-height: 220px;
+      }
+      
+      .float-whatsapp {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
       }
     }
 
     @media (max-width: 480px) {
       .brand {
         font-size: 1.5rem;
+      }
+      
+      .brand i {
+        font-size: 1.3rem;
       }
       
       .card {
@@ -399,72 +483,117 @@
       }
       
       .contact-icon {
-        font-size: 2rem;
+        font-size: 2.2rem;
+        width: 60px;
+        height: 60px;
       }
       
       .contact-card h3 {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
+      }
+      
+      .contact-card {
+        padding: 1.8rem 1.2rem;
+        min-height: 200px;
+      }
+      
+      .support-hours {
+        padding: 1.5rem;
+      }
+      
+      .support-hours li {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.3rem;
+      }
+      
+      .float-whatsapp {
+        bottom: 1rem;
+        right: 1rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
       }
     }
   </style>
 </head>
 <body>
   <nav class="nav" id="nav">
-    <div class="brand">AS SMM Panel</div>
+    <div class="brand"><i class="fas fa-rocket"></i> AS SMM Panel</div>
     <button class="hamb btn outline" onclick="toggleMenu()">☰</button>
     <div class="menu">
-      <a href="/">Login</a>
-      <a href="/payments.html">Payments</a>
-      <a href="/terms.html">Terms</a>
+      <a href="/"><i class="fas fa-sign-in-alt"></i> Login</a>
+      <a href="/payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+      <a href="/terms.html"><i class="fas fa-file-alt"></i> Terms</a>
     </div>
   </nav>
 
   <div class="container">
     <div class="card">
-      <h2>Contact Us</h2>
+      <h2><i class="fas fa-envelope"></i> Contact Us</h2>
       
       <div class="contact-methods">
         <div class="contact-card">
-          <div class="contact-icon">💬</div>
+          <div class="contact-icon">
+            <i class="fab fa-whatsapp"></i>
+          </div>
           <h3>WhatsApp Support</h3>
-          <a href="https://wa.me/923702723151" target="_blank">+92 370 2723151</a>
-          <p>Fast response</p>
+          <a href="https://wa.me/923702723151" target="_blank">
+            <i class="fas fa-phone"></i> +92 370 2723151
+          </a>
+          <p><i class="fas fa-bolt"></i> Fast response</p>
         </div>
         
         <div class="contact-card">
-          <div class="contact-icon">📧</div>
+          <div class="contact-icon">
+            <i class="fas fa-envelope"></i>
+          </div>
           <h3>Email Support</h3>
-          <p id="adminEmail">ahrar.0932@gmail.com</p>
-          <p>Admin response</p>
+          <p id="adminEmail"><i class="fas fa-at"></i> ahrar.0932@gmail.com</p>
+          <p><i class="fas fa-user-shield"></i> Admin response</p>
         </div>
       </div>
       
       <div class="support-hours">
-        <h3>Support Hours</h3>
+        <h3><i class="fas fa-clock"></i> Support Hours</h3>
         <ul>
           <li><span>Monday - Friday:</span> <span>9AM - 11PM</span></li>
           <li><span>Saturday - Sunday:</span> <span>10AM - 10PM</span></li>
         </ul>
       </div>
       
-      <p style="margin-top: 1.5rem; font-style: italic;">
-        We typically respond within 1-2 hours during support hours.
+      <p style="margin-top: 1.5rem; font-style: italic; text-align: center;">
+        <i class="fas fa-hourglass-half"></i> We typically respond within 1-2 hours during support hours.
       </p>
     </div>
   </div>
 
-  <a class="float-whatsapp" href="https://wa.me/923702723151" target="_blank">💬</a>
+  <footer>
+    <p>&copy; 2023 AS SMM Panel. All rights reserved.</p>
+  </footer>
+
+  <a class="float-whatsapp" href="https://wa.me/923702723151" target="_blank">
+    <i class="fab fa-whatsapp"></i>
+  </a>
   
   <script>
     function toggleMenu(){ 
       document.getElementById('nav').classList.toggle('open'); 
     }
     
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const nav = document.getElementById('nav');
+      if (nav.classList.contains('open') && !e.target.closest('.nav')) {
+        nav.classList.remove('open');
+      }
+    });
+    
     // Fetch admin email (same as Gmail user if logged-in admin, otherwise show placeholder)
     fetch('/api/me').then(r=>r.json()).then(j=>{
-      document.getElementById('adminEmail').innerText = j?.user?.email || 'ahrar.0932@gmail.com';
+      document.getElementById('adminEmail').innerHTML = '<i class="fas fa-at"></i> ' + (j?.user?.email || 'ahrar.0932@gmail.com');
     }).catch(() => {
-      document.getElementById('adminEmail').innerText = 'ahrar.0932@gmail.com';
+      document.getElementById('adminEmail').innerHTML = '<i class="fas fa-at"></i> ahrar.0932@gmail.com';
     });
     
     // Add animation to contact cards
