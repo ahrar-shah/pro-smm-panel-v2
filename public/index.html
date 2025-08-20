@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SMM Panel – Order</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    form { max-width: 400px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
+    input, select, button { padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
+    button { background: #333; color: #fff; cursor: pointer; }
+    button:hover { background: #000; }
+  </style>
+</head>
+<body>
+  <h2>Place Order</h2>
+  <form id="orderForm">
+    <select id="platform" required></select>
+    <select id="service" required></select>
+    <input type="text" id="username" placeholder="Username/Link" required>
+    <input type="number" id="amount" placeholder="Amount" required>
+    <select id="paymentMethod" required>
+      <option value="easypaisa">EasyPaisa</option>
+      <option value="jazzcash">JazzCash</option>
+    </select>
+    <input type="file" id="proof" accept="image/*" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    async function loadServices() {
+      const res = await fetch('/api/services/list');
+      const data = await res.json();
+      const platformSelect = document.getElementById('platform');
+      const serviceSelect = document.getElementById('service');
+
+      platformSelect.innerHTML = '';
+      data.services.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.platform;
+        opt.textContent = p.platform.toUpperCase();
+        platformSelect.appendChild(opt);
+      });
+
+      platformSelect.onchange = () => {
+        serviceSelect.innerHTML = '';
+        const selected = data.services.find(s => s.platform === platformSelect.value);
+        selected.services.forEach(srv => {
+          const opt = document.createElement('option');
+          opt.value = srv.name;
+          opt.textContent = `${srv.name} (${srv.price}$)`;
+          serviceSelect.appendChild(opt);
+        });
+      };
+      platformSelect.onchange();
+    }
+    loadServices();
+
+    document.getElementById('orderForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const file = document.getElementById('proof').files[0];
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const proof = reader.result;
+        const body = {
+          platform: document.getElementById('platform').value,
+          service: document.getElementById('service').value,
+          username: document.getElementById('username').value,
+          amount: document.getElementById('amount').value,
+          paymentMethod: document.getElementById('paymentMethod').value,
+          proof
+        };
+        const res = await fetch('/api/orders/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        alert('Order placed!');
+      };
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>
