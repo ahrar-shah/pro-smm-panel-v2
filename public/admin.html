@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Admin – SMM Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     /* CSS Variables for consistent theming */
     :root {
@@ -40,6 +41,8 @@
       margin: 0;
       animation: gradientShift 15s ease infinite;
       background-size: 200% 200%;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Navigation */
@@ -65,6 +68,13 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: fadeIn 1s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand i {
+      font-size: 1.5rem;
     }
 
     .menu {
@@ -73,16 +83,24 @@
       gap: 1.5rem;
     }
 
-    .menu a {
+    .menu a, .menu button {
       text-decoration: none;
       color: var(--dark);
       font-weight: 500;
       position: relative;
       padding: 0.5rem 0;
       transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: inherit;
     }
 
-    .menu a:after {
+    .menu a:after, .menu button:after {
       content: '';
       position: absolute;
       width: 0;
@@ -93,11 +111,11 @@
       transition: var(--transition);
     }
 
-    .menu a:hover {
+    .menu a:hover, .menu button:hover {
       color: var(--primary);
     }
 
-    .menu a:hover:after {
+    .menu a:hover:after, .menu button:hover:after {
       width: 100%;
     }
 
@@ -110,6 +128,7 @@
       padding: 0.5rem;
       cursor: pointer;
       transition: var(--transition);
+      font-size: 1.2rem;
     }
 
     .hamb:hover {
@@ -123,6 +142,8 @@
       margin: 2rem auto;
       padding: 1rem;
       animation: fadeIn 0.8s ease;
+      flex: 1;
+      width: 100%;
     }
 
     .grid.two {
@@ -135,12 +156,23 @@
     .card {
       background: rgba(255, 255, 255, 0.95);
       border-radius: var(--border-radius);
-      padding: 2rem;
+      padding: 2.5rem;
       box-shadow: var(--box-shadow);
       transition: var(--transition);
       backdrop-filter: blur(10px);
       animation: cardAppear 0.8s ease;
+      position: relative;
       overflow: hidden;
+    }
+
+    .card:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--primary), var(--secondary));
     }
 
     .card:hover {
@@ -150,16 +182,33 @@
 
     .card h2 {
       color: var(--primary);
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       font-size: 2rem;
-      border-bottom: 2px solid var(--gray-light);
+      position: relative;
       padding-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card h2:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      border-radius: 3px;
     }
 
     .card h3 {
       color: var(--secondary);
       margin: 1.5rem 0 1rem;
       font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     /* Tables */
@@ -168,6 +217,9 @@
       border-collapse: collapse;
       margin: 1rem 0;
       font-size: 0.9rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border-radius: var(--border-radius);
+      overflow: hidden;
     }
 
     th, td {
@@ -190,12 +242,14 @@
     /* Badge */
     .badge {
       background: var(--gray-light);
-      padding: 0.5rem 1rem;
+      padding: 0.8rem 1.2rem;
       border-radius: var(--border-radius);
       font-weight: 500;
-      display: inline-block;
-      margin-bottom: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 0.8rem;
       transition: var(--transition);
+      gap: 0.5rem;
     }
 
     .badge:hover {
@@ -205,11 +259,13 @@
 
     /* Status Indicators */
     .status {
-      padding: 0.3rem 0.8rem;
+      padding: 0.4rem 0.8rem;
       border-radius: 20px;
       font-size: 0.8rem;
       font-weight: 600;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
     }
 
     .status.done {
@@ -228,17 +284,26 @@
     form {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.2rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
     label {
       font-weight: 500;
       color: var(--dark);
-      margin-bottom: -0.5rem;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     input, select, textarea {
-      padding: 0.8rem 1rem;
+      padding: 0.9rem 1.2rem;
       border: 1px solid var(--gray-light);
       border-radius: var(--border-radius);
       font-size: 1rem;
@@ -254,7 +319,7 @@
 
     /* Buttons */
     .btn {
-      padding: 0.6rem 1.2rem;
+      padding: 0.8rem 1.2rem;
       background: linear-gradient(to right, var(--primary), var(--secondary));
       color: white;
       border: none;
@@ -264,7 +329,10 @@
       cursor: pointer;
       transition: var(--transition);
       text-align: center;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
       position: relative;
       overflow: hidden;
     }
@@ -300,6 +368,11 @@
       color: white;
     }
 
+    .btn.small {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.8rem;
+    }
+
     /* Messages */
     #ordersMsg, #svcMsg {
       margin-top: 1rem;
@@ -310,9 +383,31 @@
       transition: var(--transition);
     }
 
-    #svcMsg {
+    .success {
       background: rgba(76, 201, 240, 0.2);
+      color: #0a58ca;
       border-left: 4px solid var(--success);
+    }
+
+    .error {
+      background: rgba(249, 65, 68, 0.2);
+      color: #dc3545;
+      border-left: 4px solid var(--danger);
+    }
+
+    /* Footer */
+    footer {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 1.5rem;
+      text-align: center;
+      margin-top: auto;
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--gray-light);
+    }
+
+    footer p {
+      color: var(--gray);
+      font-size: 0.9rem;
     }
 
     /* Animations */
@@ -361,8 +456,8 @@
       }
       
       .menu {
-        position: absolute;
-        top: 100%;
+        position: fixed;
+        top: 70px;
         left: 0;
         right: 0;
         background: white;
@@ -373,6 +468,7 @@
         opacity: 0;
         visibility: hidden;
         transition: var(--transition);
+        z-index: 999;
         gap: 0;
       }
       
@@ -400,15 +496,20 @@
       
       .container {
         margin: 1rem auto;
-        padding: 0.5rem;
+        padding: 0.8rem;
       }
       
       .card {
-        padding: 1.5rem;
+        padding: 1.8rem;
       }
       
       th, td {
-        padding: 0.5rem;
+        padding: 0.6rem;
+        font-size: 0.8rem;
+      }
+      
+      .btn {
+        padding: 0.7rem 1rem;
         font-size: 0.8rem;
       }
     }
@@ -418,38 +519,56 @@
         font-size: 1.5rem;
       }
       
-      .card {
-        padding: 1.2rem;
+      .brand i {
+        font-size: 1.3rem;
       }
       
-      .btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
+      .card {
+        padding: 1.5rem;
       }
       
       .card h2 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
       }
       
       .card h3 {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
+      }
+      
+      .btn {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.8rem;
+      }
+      
+      input, select, textarea {
+        padding: 0.8rem 1rem;
+      }
+      
+      .badge {
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+      }
+      
+      .status {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
       }
     }
   </style>
 </head>
 <body>
   <nav class="nav" id="nav">
-    <div class="brand">AS SMM Panel (Admin)</div>
+    <div class="brand"><i class="fas fa-shield-alt"></i> AS SMM Panel (Admin)</div>
     <button class="hamb btn outline" onclick="toggleMenu()">☰</button>
     <div class="menu">
-      <a href="/dashboard.html">Dashboard</a>
-      <button class="btn outline" onclick="logout()">Logout</button>
+      <a href="/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <button class="btn outline" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </div>
   </nav>
 
   <div class="container grid two">
     <div class="card">
-      <h2>Orders</h2>
+      <h2><i class="fas fa-shopping-cart"></i> Orders</h2>
       <table id="ordersTbl">
         <thead>
           <tr>
@@ -472,101 +591,239 @@
     </div>
 
     <div class="card">
-      <h2>Services</h2>
+      <h2><i class="fas fa-cog"></i> Services</h2>
       <div id="services"></div>
       <hr/><br/>
-      <h3>Add Service</h3>
+      <h3><i class="fas fa-plus-circle"></i> Add Service</h3>
       <form id="addService">
-        <label>Platform</label>
-        <input name="platform" placeholder="TikTok / Instagram / YouTube" required />
-        <label>Service Name</label>
-        <input name="name" placeholder="Followers / Likes / ..." required />
-        <label>Price (PKR per 1)</label>
-        <input name="price" type="number" step="0.01" required />
-        <br/>
-        <button class="btn" type="submit">Add</button>
+        <div class="form-group">
+          <label for="platform"><i class="fas fa-tablet-alt"></i> Platform</label>
+          <input id="platform" name="platform" placeholder="TikTok / Instagram / YouTube" required />
+        </div>
+        <div class="form-group">
+          <label for="name"><i class="fas fa-tag"></i> Service Name</label>
+          <input id="name" name="name" placeholder="Followers / Likes / ..." required />
+        </div>
+        <div class="form-group">
+          <label for="price"><i class="fas fa-tag"></i> Price (PKR per 1)</label>
+          <input id="price" name="price" type="number" step="0.01" required />
+        </div>
+        <button class="btn" type="submit"><i class="fas fa-plus"></i> Add Service</button>
       </form>
       <p id="svcMsg"></p>
     </div>
   </div>
 
+  <footer>
+    <p>&copy; 2023 AS SMM Panel. All rights reserved.</p>
+  </footer>
+
   <script>
-    function toggleMenu(){ document.getElementById('nav').classList.toggle('open'); }
+    function toggleMenu(){ 
+      document.getElementById('nav').classList.toggle('open'); 
+    }
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const nav = document.getElementById('nav');
+      if (nav.classList.contains('open') && !e.target.closest('.nav')) {
+        nav.classList.remove('open');
+      }
+    });
+
     async function me(){
-      const r = await fetch('/api/me'); const j = await r.json();
-      if(!j.user) return location.href='/';
-      if(!j.admin){ alert('Admin only. Login as admin Gmail.'); return location.href='/'; }
+      try {
+        const r = await fetch('/api/me'); 
+        const j = await r.json();
+        if(!j.user) return location.href='/';
+        if(!j.admin){ 
+          alert('Admin only. Login as admin Gmail.'); 
+          return location.href='/'; 
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        location.href='/';
+      }
     }
+    
     async function loadOrders(){
-      const r = await fetch('/api/admin/orders');
-      const j = await r.json();
-      if(!j.orders){ document.getElementById('ordersMsg').textContent=j.error||'No orders'; return; }
-      const tb = document.querySelector('#ordersTbl tbody');
-      tb.innerHTML = j.orders.map(o=>`
-        <tr>
-          <td>${o.id}</td>
-          <td>${o.user.name}<br/>@${o.user.username}<br/>${o.user.email}<br/>${o.user.phone}</td>
-          <td>${o.platform}</td>
-          <td>${o.service}</td>
-          <td>${o.quantity}</td>
-          <td>${o.price} PKR</td>
-          <td>${o.payment}</td>
-          <td>${o.screenshot ? `<a href="/uploads/${o.screenshot.storedAs}" target="_blank">View</a>` : '-'}</td>
-          <td>${new Date(o.createdAt).toLocaleString()}</td>
-          <td>${o.status==='done' ? '<span class="status done">done</span>' : '<span class="status progress">in progress</span>'}</td>
-          <td>
-            <button class="btn" onclick="setStatus('${o.id}','done')">Done</button>
-            <button class="btn outline" onclick="setStatus('${o.id}','in progress')">In Progress</button>
-          </td>
-        </tr>
-      `).join('');
+      try {
+        const r = await fetch('/api/admin/orders');
+        const j = await r.json();
+        const ordersMsg = document.getElementById('ordersMsg');
+        
+        if(!j.orders){ 
+          ordersMsg.textContent = j.error || 'No orders found';
+          ordersMsg.className = 'error';
+          return; 
+        }
+        
+        const tb = document.querySelector('#ordersTbl tbody');
+        tb.innerHTML = j.orders.map(o=>`
+          <tr>
+            <td>${o.id}</td>
+            <td>
+              <strong>${o.user.name}</strong><br/>
+              @${o.user.username}<br/>
+              ${o.user.email}<br/>
+              ${o.user.phone}
+            </td>
+            <td>${o.platform}</td>
+            <td>${o.service}</td>
+            <td>${o.quantity}</td>
+            <td>${o.price} PKR</td>
+            <td>${o.payment}</td>
+            <td>${o.screenshot ? `<a href="/uploads/${o.screenshot.storedAs}" target="_blank" class="btn small"><i class="fas fa-eye"></i> View</a>` : '-'}</td>
+            <td>${new Date(o.createdAt).toLocaleString()}</td>
+            <td>
+              ${o.status==='done' ? 
+                '<span class="status done"><i class="fas fa-check"></i> done</span>' : 
+                '<span class="status progress"><i class="fas fa-spinner"></i> in progress</span>'
+              }
+            </td>
+            <td>
+              <button class="btn small" onclick="setStatus('${o.id}','done')"><i class="fas fa-check"></i> Done</button>
+              <button class="btn outline small" onclick="setStatus('${o.id}','in progress')"><i class="fas fa-sync"></i> Progress</button>
+            </td>
+          </tr>
+        `).join('');
+        
+        ordersMsg.textContent = `Loaded ${j.orders.length} orders`;
+        ordersMsg.className = 'success';
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        document.getElementById('ordersMsg').textContent = 'Failed to load orders';
+        document.getElementById('ordersMsg').className = 'error';
+      }
     }
+    
     async function setStatus(id, status){
-      await fetch('/api/admin/orders/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status})});
-      loadOrders();
+      try {
+        await fetch('/api/admin/orders/status', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({id, status})
+        });
+        loadOrders();
+      } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Failed to update status');
+      }
     }
 
     async function loadServices(){
-      const r = await fetch('/api/services'); const j = await r.json();
-      const root = document.getElementById('services');
-      root.innerHTML = (j.services||[]).map(p=>`
-        <div class="card" style="margin:10px 0">
-          <div class="badge"><b>${p.platform}</b></div><br/>
-          <table><tbody>
-            ${p.services.map(s=>`
-              <tr>
-                <td>${s.name}</td>
-                <td>${s.price} PKR</td>
-                <td>${s.active ? '✅ Active' : '🚫 Inactive'}</td>
-                <td>
-                  <button class="btn" onclick="toggleSvc('${p.platform}','${s.name}', ${!s.active})">${s.active?'Disable':'Enable'}</button>
-                  <button class="btn outline" onclick="delSvc('${p.platform}','${s.name}')">Delete</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody></table>
-        </div>
-      `).join('');
+      try {
+        const r = await fetch('/api/services'); 
+        const j = await r.json();
+        const root = document.getElementById('services');
+        
+        if (!j.services || j.services.length === 0) {
+          root.innerHTML = '<p>No services found</p>';
+          return;
+        }
+        
+        root.innerHTML = j.services.map(p=>`
+          <div class="card" style="margin:10px 0">
+            <div class="badge"><i class="fas fa-tablet-alt"></i> <b>${p.platform}</b></div>
+            <table><tbody>
+              ${p.services.map(s=>`
+                <tr>
+                  <td><strong>${s.name}</strong></td>
+                  <td>${s.price} PKR</td>
+                  <td>${s.active ? '<span class="status done"><i class="fas fa-check"></i> Active</span>' : '<span class="status progress"><i class="fas fa-times"></i> Inactive</span>'}</td>
+                  <td>
+                    <button class="btn small" onclick="toggleSvc('${p.platform}','${s.name}', ${!s.active})">
+                      ${s.active ? '<i class="fas fa-toggle-off"></i> Disable' : '<i class="fas fa-toggle-on"></i> Enable'}
+                    </button>
+                    <button class="btn outline small" onclick="delSvc('${p.platform}','${s.name}')">
+                      <i class="fas fa-trash"></i> Delete
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody></table>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading services:', error);
+        document.getElementById('services').innerHTML = '<p class="error">Failed to load services</p>';
+      }
     }
-    async function toggleSvc(platform,name,active){
-      await fetch('/api/admin/services/toggle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,name,active})});
-      loadServices();
+    
+    async function toggleSvc(platform, name, active){
+      try {
+        await fetch('/api/admin/services/toggle', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({platform, name, active})
+        });
+        loadServices();
+      } catch (error) {
+        console.error('Error toggling service:', error);
+        alert('Failed to update service');
+      }
     }
-    async function delSvc(platform,name){
-      await fetch('/api/admin/services/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform,name})});
-      loadServices();
+    
+    async function delSvc(platform, name){
+      if (!confirm(`Are you sure you want to delete ${name} from ${platform}?`)) return;
+      
+      try {
+        await fetch('/api/admin/services/delete', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({platform, name})
+        });
+        loadServices();
+      } catch (error) {
+        console.error('Error deleting service:', error);
+        alert('Failed to delete service');
+      }
     }
+    
     document.getElementById('addService').addEventListener('submit', async (e)=>{
       e.preventDefault();
-      const f = new FormData(e.target);
-      const r = await fetch('/api/admin/services/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:f.get('platform'),name:f.get('name'),price:f.get('price')})});
-      const j = await r.json();
-      document.getElementById('svcMsg').textContent = j.ok ? 'Added' : (j.error||'Failed');
-      if(j.ok){ e.target.reset(); loadServices(); }
+      const svcMsg = document.getElementById('svcMsg');
+      svcMsg.textContent = '';
+      svcMsg.className = '';
+      
+      try {
+        const f = new FormData(e.target);
+        const r = await fetch('/api/admin/services/add', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            platform: f.get('platform'),
+            name: f.get('name'),
+            price: f.get('price')
+          })
+        });
+        const j = await r.json();
+        
+        if (j.ok) {
+          svcMsg.textContent = 'Service added successfully';
+          svcMsg.className = 'success';
+          e.target.reset();
+          loadServices();
+        } else {
+          svcMsg.textContent = j.error || 'Failed to add service';
+          svcMsg.className = 'error';
+        }
+      } catch (error) {
+        console.error('Error adding service:', error);
+        svcMsg.textContent = 'Connection error. Please try again.';
+        svcMsg.className = 'error';
+      }
     });
-    function logout(){ fetch('/api/logout',{method:'POST'}).then(()=>location.href='/'); }
+    
+    function logout(){ 
+      fetch('/api/logout', {method: 'POST'}).then(() => location.href = '/'); 
+    }
 
-    me().then(()=>{ loadOrders(); loadServices(); });
+    // Initialize
+    me().then(() => { 
+      loadOrders(); 
+      loadServices(); 
+    });
   </script>
 </body>
 </html>
