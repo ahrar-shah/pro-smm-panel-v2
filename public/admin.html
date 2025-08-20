@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 8px; border: 1px solid #ccc; }
+    button { padding: 5px 10px; margin: 2px; }
+  </style>
+</head>
+<body>
+  <h2>Admin Panel</h2>
+  <button onclick="loadOrders()">Refresh Orders</button>
+  <button onclick="loadServices()">Refresh Services</button>
+
+  <h3>Add Service</h3>
+  <form id="serviceForm">
+    <input type="text" id="platform" placeholder="Platform (e.g. tiktok)" required>
+    <input type="text" id="name" placeholder="Service Name" required>
+    <input type="number" id="price" placeholder="Price" required>
+    <button type="submit">Add</button>
+  </form>
+
+  <h3>Orders</h3>
+  <table id="ordersTable">
+    <thead>
+      <tr><th>ID</th><th>Platform</th><th>Service</th><th>User</th><th>Amount</th><th>Status</th><th>Proof</th><th>Action</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Services</h3>
+  <ul id="servicesList"></ul>
+
+  <script>
+    async function loadOrders() {
+      const res = await fetch('/api/orders/list');
+      const data = await res.json();
+      const tbody = document.querySelector('#ordersTable tbody');
+      tbody.innerHTML = '';
+      data.orders.forEach(o => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${o.id}</td>
+          <td>${o.platform}</td>
+          <td>${o.service}</td>
+          <td>${o.username}</td>
+          <td>${o.amount}</td>
+          <td>${o.status}</td>
+          <td><img src="${o.proof}" width="60"/></td>
+          <td>
+            <button onclick="updateStatus('${o.id}','In Progress')">In Progress</button>
+            <button onclick="updateStatus('${o.id}','Completed')">Completed</button>
+            <button onclick="updateStatus('${o.id}','Rejected')">Rejected</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateStatus(id, status) {
+      await fetch('/api/orders/list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status })
+      });
+      loadOrders();
+    }
+
+    async function loadServices() {
+      const res = await fetch('/api/services/list');
+      const data = await res.json();
+      const list = document.getElementById('servicesList');
+      list.innerHTML = '';
+      data.services.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML = `<b>${p.platform}:</b> ${p.services.map(s => s.name + "($" + s.price + ")").join(", ")} 
+          <button onclick="deleteService('${p.platform}','${p.services[0].name}')">Delete First</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function deleteService(platform, name) {
+      await fetch('/api/services/list', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform, name })
+      });
+      loadServices();
+    }
+
+    document.getElementById('serviceForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const body = {
+        platform: document.getElementById('platform').value,
+        name: document.getElementById('name').value,
+        price: document.getElementById('price').value
+      };
+      await fetch('/api/services/list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      loadServices();
+    });
+
+    loadOrders();
+    loadServices();
+  </script>
+</body>
+</html>
