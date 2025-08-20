@@ -1,0 +1,17 @@
+[
+  {
+    "platform": "tiktok",
+    "services": [
+      { "name": "Followers", "price": 1, "active": true },
+      { "name": "Likes", "price": 1, "active": true }
+    ]
+  },
+  {
+    "platform": "instagram",
+    "services": [
+      { "name": "Followers", "price": 1, "active": true },
+      { "name": "Likes", "price": 1, "active": true },
+      { "name": "Comments", "price": 2, "active": true }
+    ]
+  }
+]
