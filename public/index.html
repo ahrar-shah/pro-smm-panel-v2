@@ -2,83 +2,101 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>SMM Panel – Order</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    form { max-width: 400px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
-    input, select, button { padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
-    button { background: #333; color: #fff; cursor: pointer; }
-    button:hover { background: #000; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMM Panel - Login / Signup</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Place Order</h2>
-  <form id="orderForm">
-    <select id="platform" required></select>
-    <select id="service" required></select>
-    <input type="text" id="username" placeholder="Username/Link" required>
-    <input type="number" id="amount" placeholder="Amount" required>
-    <select id="paymentMethod" required>
-      <option value="easypaisa">EasyPaisa</option>
-      <option value="jazzcash">JazzCash</option>
-    </select>
-    <input type="file" id="proof" accept="image/*" required>
-    <button type="submit">Submit</button>
-  </form>
+  <nav class="navbar">
+    <div class="logo">SMM Panel</div>
+  </nav>
+
+  <div class="auth-container">
+    <h2 id="form-title">Login</h2>
+
+    <!-- Login Form -->
+    <form id="loginForm">
+      <input type="text" id="loginUsername" placeholder="Username" required>
+      <input type="password" id="loginPassword" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+
+    <!-- Signup Form -->
+    <form id="signupForm" style="display:none;">
+      <input type="text" id="signupUsername" placeholder="Username" required>
+      <input type="text" id="signupName" placeholder="Full Name" required>
+      <input type="email" id="signupEmail" placeholder="Email" required>
+      <input type="password" id="signupPassword" placeholder="Password" required>
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <p id="toggleForm">Don’t have an account? <a href="#">Sign up</a></p>
+  </div>
 
   <script>
-    async function loadServices() {
-      const res = await fetch('/api/services/list');
-      const data = await res.json();
-      const platformSelect = document.getElementById('platform');
-      const serviceSelect = document.getElementById('service');
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const toggleForm = document.getElementById("toggleForm");
+    const formTitle = document.getElementById("form-title");
 
-      platformSelect.innerHTML = '';
-      data.services.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.platform;
-        opt.textContent = p.platform.toUpperCase();
-        platformSelect.appendChild(opt);
-      });
-
-      platformSelect.onchange = () => {
-        serviceSelect.innerHTML = '';
-        const selected = data.services.find(s => s.platform === platformSelect.value);
-        selected.services.forEach(srv => {
-          const opt = document.createElement('option');
-          opt.value = srv.name;
-          opt.textContent = `${srv.name} (${srv.price}$)`;
-          serviceSelect.appendChild(opt);
-        });
-      };
-      platformSelect.onchange();
-    }
-    loadServices();
-
-    document.getElementById('orderForm').addEventListener('submit', async e => {
+    toggleForm.addEventListener("click", (e) => {
       e.preventDefault();
-      const file = document.getElementById('proof').files[0];
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const proof = reader.result;
-        const body = {
-          platform: document.getElementById('platform').value,
-          service: document.getElementById('service').value,
-          username: document.getElementById('username').value,
-          amount: document.getElementById('amount').value,
-          paymentMethod: document.getElementById('paymentMethod').value,
-          proof
-        };
-        const res = await fetch('/api/orders/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        const data = await res.json();
-        alert('Order placed!');
-      };
-      reader.readAsDataURL(file);
+      if (loginForm.style.display === "none") {
+        loginForm.style.display = "block";
+        signupForm.style.display = "none";
+        formTitle.innerText = "Login";
+        toggleForm.innerHTML = `Don’t have an account? <a href="#">Sign up</a>`;
+      } else {
+        loginForm.style.display = "none";
+        signupForm.style.display = "block";
+        formTitle.innerText = "Sign Up";
+        toggleForm.innerHTML = `Already have an account? <a href="#">Login</a>`;
+      }
+    });
+
+    // Login
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("loginUsername").value;
+      const password = document.getElementById("loginPassword").value;
+
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        window.location.href = "/dashboard.html";
+      } else {
+        alert(data.message);
+      }
+    });
+
+    // Signup
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("signupUsername").value;
+      const name = document.getElementById("signupName").value;
+      const email = document.getElementById("signupEmail").value;
+      const password = document.getElementById("signupPassword").value;
+
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, name, email, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Signup successful! Please login.");
+        loginForm.style.display = "block";
+        signupForm.style.display = "none";
+      } else {
+        alert(data.message);
+      }
     });
   </script>
 </body>
 </html>
+
