@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Terms & Conditions – SMM Panel</title>
+  <style>
+    /* CSS Variables for consistent theming */
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #7209b7;
+      --accent: #f72585;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9f0;
+      --warning: #f9c74f;
+      --danger: #f94144;
+      --gray: #6c757d;
+      --gray-light: #e9ecef;
+      --border-radius: 12px;
+      --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+      animation: gradientShift 15s ease infinite;
+      background-size: 200% 200%;
+    }
+
+    /* Navigation */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.5s ease;
+    }
+
+    .brand {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fadeIn 1s ease;
+    }
+
+    .menu {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .menu a {
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: 500;
+      position: relative;
+      padding: 0.5rem 0;
+      transition: var(--transition);
+    }
+
+    .menu a:after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      transition: var(--transition);
+    }
+
+    .menu a:hover {
+      color: var(--primary);
+    }
+
+    .menu a:hover:after {
+      width: 100%;
+    }
+
+    .hamb {
+      display: none;
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      border-radius: var(--border-radius);
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .hamb:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Main Content */
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1rem;
+      animation: fadeIn 0.8s ease;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: var(--border-radius);
+      padding: 2.5rem;
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      animation: cardAppear 0.8s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h2 {
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-size: 2.2rem;
+      border-bottom: 2px solid var(--gray-light);
+      padding-bottom: 0.8rem;
+    }
+
+    /* Terms List */
+    ul {
+      list-style: none;
+      margin: 1.5rem 0;
+    }
+
+    ul li {
+      margin-bottom: 1.2rem;
+      padding: 1rem 1.2rem 1rem 3rem;
+      background: rgba(67, 97, 238, 0.05);
+      border-radius: var(--border-radius);
+      border-left: 4px solid var(--primary);
+      position: relative;
+      transition: var(--transition);
+    }
+
+    ul li:hover {
+      background: rgba(67, 97, 238, 0.1);
+      transform: translateX(5px);
+    }
+
+    ul li:before {
+      content: '•';
+      color: var(--primary);
+      font-weight: bold;
+      font-size: 1.5rem;
+      position: absolute;
+      left: 1rem;
+      top: 0.8rem;
+    }
+
+    ul li b {
+      color: var(--primary-dark);
+    }
+
+    /* Final Paragraph */
+    .card > p {
+      text-align: center;
+      margin-top: 2rem;
+      padding: 1.2rem;
+      background: rgba(76, 201, 240, 0.1);
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      border-left: 4px solid var(--success);
+    }
+
+    /* WhatsApp Float */
+    .float-whatsapp {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #25D366;
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.5);
+      transition: var(--transition);
+      animation: pulse 2s infinite;
+      z-index: 1000;
+    }
+
+    .float-whatsapp:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px rgba(37, 211, 102, 0.7);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-100%); }
+      to { transform: translateY(0); }
+    }
+
+    @keyframes cardAppear {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+    }
+
+    @keyframes listItemAppear {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .nav {
+        padding: 1rem;
+      }
+      
+      .menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 1rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-10px);
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+      }
+      
+      .menu a {
+        padding: 0.8rem;
+        border-bottom: 1px solid var(--gray-light);
+      }
+      
+      .menu a:last-child {
+        border-bottom: none;
+      }
+      
+      .nav.open .menu {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      .hamb {
+        display: block;
+      }
+      
+      .container {
+        margin: 1rem auto;
+        padding: 0.5rem;
+      }
+      
+      .card {
+        padding: 1.8rem;
+      }
+      
+      .card h2 {
+        font-size: 1.8rem;
+      }
+      
+      ul li {
+        padding: 0.8rem 1rem 0.8rem 2.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .brand {
+        font-size: 1.5rem;
+      }
+      
+      .card {
+        padding: 1.5rem;
+      }
+      
+      .card h2 {
+        font-size: 1.6rem;
+      }
+      
+      ul li {
+        padding: 0.7rem 0.8rem 0.7rem 2.2rem;
+        font-size: 0.9rem;
+      }
+      
+      ul li:before {
+        left: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="brand">AS SMM Panel</div>
+    <button class="hamb btn outline" onclick="toggleMenu()">☰</button>
+    <div class="menu">
+      <a href="/">Login</a>
+      <a href="/payments.html">Payments</a>
+      <a href="/contact.html">Contact</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card">
+      <h2>Terms & Conditions</h2>
+      <ul>
+        <li>Orders typically start within <b>5 minutes to 2 hours</b>. Large orders may take longer.</li>
+        <li>Provide the correct link/username. We are not responsible for issues due to wrong details.</li>
+        <li>Once an order has started, it cannot be canceled or changed.</li>
+        <li>We do not guarantee engagement beyond what's purchased (e.g., extra likes after followers).</li>
+        <li>Refills/replacements are subject to the specific service conditions if stated.</li>
+        <li>No refund for completed or in-progress orders.</li>
+        <li>By placing an order, you confirm you have the right to use the account/link.</li>
+        <li>Abuse or fraudulent activity will result in account suspension.</li>
+      </ul>
+      <p>For any issue, contact us on WhatsApp.</p>
+    </div>
+  </div>
+
+  <a class="float-whatsapp" href="https://wa.me/923702723151" target="_blank">💬</a>
+  
+  <script>
+    function toggleMenu(){ 
+      document.getElementById('nav').classList.toggle('open'); 
+    }
+    
+    // Add animation to list items
+    document.addEventListener('DOMContentLoaded', function() {
+      const listItems = document.querySelectorAll('li');
+      listItems.forEach((item, index) => {
+        item.style.animation = `listItemAppear 0.5s ease ${index * 0.1}s forwards`;
+        item.style.opacity = '0';
+      });
+    });
+  </script>
+</body>
+</html>
