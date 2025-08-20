@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dashboard – SMM Panel</title>
+  <style>
+    /* CSS Variables for consistent theming */
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #7209b7;
+      --accent: #f72585;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9f0;
+      --warning: #f9c74f;
+      --danger: #f94144;
+      --gray: #6c757d;
+      --gray-light: #e9ecef;
+      --border-radius: 12px;
+      --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+      animation: gradientShift 15s ease infinite;
+      background-size: 200% 200%;
+    }
+
+    /* Navigation */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.5s ease;
+    }
+
+    .brand {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fadeIn 1s ease;
+    }
+
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .menu a {
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: 500;
+      position: relative;
+      padding: 0.5rem 0;
+      transition: var(--transition);
+    }
+
+    .menu a:after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      transition: var(--transition);
+    }
+
+    .menu a:hover {
+      color: var(--primary);
+    }
+
+    .menu a:hover:after {
+      width: 100%;
+    }
+
+    .hamb {
+      display: none;
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      border-radius: var(--border-radius);
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .hamb:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Main Content */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 1rem;
+      animation: fadeIn 0.8s ease;
+    }
+
+    .grid.two {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      animation: cardAppear 0.8s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h2 {
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-size: 2rem;
+    }
+
+    .card h3 {
+      color: var(--secondary);
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    /* Forms */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    label {
+      font-weight: 500;
+      color: var(--dark);
+      margin-bottom: -0.5rem;
+    }
+
+    input, select, textarea {
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--gray-light);
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+      display: inline-block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+
+    .btn:hover:before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+    }
+
+    .btn.outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn.outline:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Badge */
+    .badge {
+      background: var(--gray-light);
+      padding: 0.8rem 1.2rem;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      transition: var(--transition);
+    }
+
+    .badge:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* WhatsApp Float */
+    .float-whatsapp {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #25D366;
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.5);
+      transition: var(--transition);
+      animation: pulse 2s infinite;
+      z-index: 1000;
+    }
+
+    .float-whatsapp:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px rgba(37, 211, 102, 0.7);
+    }
+
+    /* Messages */
+    #msg {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-weight: 500;
+      transition: var(--transition);
+      background: rgba(76, 201, 240, 0.2);
+      border-left: 4px solid var(--success);
+    }
+
+    /* Ordered List */
+    ol {
+      padding-left: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    ol li {
+      margin-bottom: 0.8rem;
+      padding-left: 0.5rem;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-100%); }
+      to { transform: translateY(0); }
+    }
+
+    @keyframes cardAppear {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+      .grid.two {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav {
+        padding: 1rem;
+      }
+      
+      .menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 1rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-10px);
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+        gap: 0;
+      }
+      
+      .menu a, .menu button {
+        width: 100%;
+        padding: 0.8rem;
+        border-bottom: 1px solid var(--gray-light);
+        text-align: left;
+        justify-content: flex-start;
+      }
+      
+      .menu a:last-child, .menu button:last-child {
+        border-bottom: none;
+      }
+      
+      .nav.open .menu {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      .hamb {
+        display: block;
+      }
+      
+      .container {
+        margin: 1rem auto;
+      }
+      
+      .card {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .brand {
+        font-size: 1.5rem;
+      }
+      
+      .card {
+        padding: 1.2rem;
+      }
+      
+      .btn {
+        padding: 0.7rem 1.2rem;
+      }
+      
+      .grid.two {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="brand">AS SMM Panel</div>
+    <button class="hamb btn outline" onclick="toggleMenu()">☰</button>
+    <div class="menu">
+      <a href="/payments.html">Payments</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/admin.html">Admin</a>
+      <button class="btn outline" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container grid two">
+    <div class="card">
+      <h2 id="welcome">Welcome</h2>
+      <p>Place your order below. Delivery time: <b>5 minutes to 2 hours</b>.</p>
+      <br/>
+      <form id="orderForm" enctype="multipart/form-data">
+        <div class="grid two">
+          <div>
+            <label>Platform</label>
+            <select id="platform" name="platform" required></select>
+          </div>
+          <div>
+            <label>Service</label>
+            <select id="service" name="service" required></select>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div>
+            <label>Quantity</label>
+            <input type="number" id="quantity" name="quantity" min="1" value="100" required />
+          </div>
+          <div>
+            <label>Link / Username</label>
+            <input id="link" name="link" placeholder="Profile/Video link or @username" required />
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div>
+            <label>Payment Method</label>
+            <select id="payment" name="payment" required>
+              <option value="EasyPaisa">EasyPaisa</option>
+              <option value="JazzCash">JazzCash</option>
+            </select>
+          </div>
+          <div>
+            <label>Proof Screenshot (required)</label>
+            <input type="file" id="screenshot" name="screenshot" accept="image/*" required />
+          </div>
+        </div>
+
+        <div id="paymentInfo" class="badge" style="margin:10px 0;"></div>
+
+        <label>Note (optional)</label>
+        <textarea name="note" rows="3" placeholder="Any specific instructions..."></textarea>
+
+        <div class="grid two" style="align-items:center">
+          <div class="badge">Price: <span id="price" style="margin-left:8px;font-weight:700">0 PKR</span></div>
+          <button class="btn" type="submit">Place Order</button>
+        </div>
+      </form>
+      <p id="msg"></p>
+    </div>
+
+    <div class="card">
+      <h3>How it works</h3>
+      <ol>
+        <li>Select platform & service (green tick = active).</li>
+        <li>Enter quantity & your link/username.</li>
+        <li>Pay via EasyPaisa/JazzCash and upload the screenshot.</li>
+        <li>Order starts in 5 minutes to 2 hours.</li>
+      </ol>
+      <br/>
+      <div class="badge">EasyPaisa: <b style="margin-left:6px">M. Amir – 03312044136</b></div><br/>
+      <div class="badge">JazzCash: <b style="margin-left:6px">M. Amir – 03009246275</b></div>
+    </div>
+  </div>
+
+  <a class="float-whatsapp" href="https://wa.me/923702723151" target="_blank">💬</a>
+
+  <script>
+    let servicesData = [];
+    let priceMap = {}; // { "TikTok|Followers": price }
+
+    function toggleMenu(){ document.getElementById('nav').classList.toggle('open'); }
+
+    async function me(){
+      const r = await fetch('/api/me'); const j = await r.json();
+      if(!j.user){ location.href='/'; return; }
+      document.getElementById('welcome').innerText = 'Welcome ' + j.user.name;
+    }
+    async function loadServices(){
+      const r = await fetch('/api/services'); const j = await r.json();
+      servicesData = j.services || [];
+      const platformSel = document.getElementById('platform');
+      platformSel.innerHTML = servicesData.map(p=>`<option>${p.platform}</option>`).join('');
+      platformChanged();
+    }
+    function platformChanged(){
+      const platform = document.getElementById('platform').value;
+      const s = servicesData.find(p=>p.platform===platform);
+      const list = s ? s.services.filter(x=>x.active) : [];
+      const serviceSel = document.getElementById('service');
+      serviceSel.innerHTML = list.map(x=>`<option>${x.name}</option>`).join('');
+      priceMap = {};
+      list.forEach(x=> priceMap[platform+'|'+x.name]=Number(x.price));
+      calcPrice();
+    }
+    function calcPrice(){
+      const platform = document.getElementById('platform').value;
+      const service = document.getElementById('service').value;
+      const qty = Number(document.getElementById('quantity').value||0);
+      const price = Math.round((priceMap[platform+'|'+service]||0)*qty*100)/100;
+      document.getElementById('price').innerText = price + ' PKR';
+    }
+    function paymentInfo(){
+      const p = document.getElementById('payment').value;
+      const el = document.getElementById('paymentInfo');
+      if(p==='EasyPaisa') el.innerHTML='Pay to <b>M. Amir</b> — <b>03312044136</b> (screenshot required)';
+      else el.innerHTML='Pay to <b>M. Amir</b> — <b>03009246275</b> (screenshot required)';
+    }
+
+    document.getElementById('platform').addEventListener('change', platformChanged);
+    document.getElementById('service').addEventListener('change', calcPrice);
+    document.getElementById('quantity').addEventListener('input', calcPrice);
+    document.getElementById('payment').addEventListener('change', paymentInfo);
+
+    document.getElementById('orderForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const r = await fetch('/api/order', { method:'POST', body: fd });
+      const j = await r.json();
+      if(j.ok){
+        document.getElementById('msg').innerHTML = 'Order placed. <b>ID:</b> '+j.orderId+' — Price: '+j.price+' PKR';
+        e.target.reset(); calcPrice(); paymentInfo();
+      } else document.getElementById('msg').textContent = j.error || 'Order failed';
+    });
+
+    function logout(){ fetch('/api/logout',{method:'POST'}).then(()=>location.href='/'); }
+
+    me().then(loadServices).then(()=>{ calcPrice(); paymentInfo(); });
+  </script>
+</body>
+</html>
