@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Contact – SMM Panel</title>
+  <style>
+    /* CSS Variables for consistent theming */
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #7209b7;
+      --accent: #f72585;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9f0;
+      --warning: #f9c74f;
+      --danger: #f94144;
+      --gray: #6c757d;
+      --gray-light: #e9ecef;
+      --border-radius: 12px;
+      --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+      animation: gradientShift 15s ease infinite;
+      background-size: 200% 200%;
+    }
+
+    /* Navigation */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.5s ease;
+    }
+
+    .brand {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: fadeIn 1s ease;
+    }
+
+    .menu {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .menu a {
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: 500;
+      position: relative;
+      padding: 0.5rem 0;
+      transition: var(--transition);
+    }
+
+    .menu a:after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      transition: var(--transition);
+    }
+
+    .menu a:hover {
+      color: var(--primary);
+    }
+
+    .menu a:hover:after {
+      width: 100%;
+    }
+
+    .hamb {
+      display: none;
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      border-radius: var(--border-radius);
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .hamb:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Main Content */
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1rem;
+      animation: fadeIn 0.8s ease;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: var(--border-radius);
+      padding: 2.5rem;
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      animation: cardAppear 0.8s ease;
+      text-align: center;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h2 {
+      color: var(--primary);
+      margin-bottom: 2rem;
+      font-size: 2.2rem;
+      border-bottom: 2px solid var(--gray-light);
+      padding-bottom: 0.8rem;
+    }
+
+    /* Contact Methods */
+    .contact-methods {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .contact-card {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .contact-card:before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+      transform: rotate(30deg);
+    }
+
+    .contact-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 15px 30px rgba(67, 97, 238, 0.3);
+    }
+
+    .contact-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .contact-card h3 {
+      color: white;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+      font-size: 1.3rem;
+    }
+
+    .contact-card p, .contact-card a {
+      color: white;
+      margin: 0.3rem 0;
+      position: relative;
+      z-index: 1;
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .contact-card a:hover {
+      color: var(--warning);
+      transform: scale(1.05);
+    }
+
+    /* Support Hours */
+    .support-hours {
+      background: rgba(76, 201, 240, 0.1);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-left: 4px solid var(--success);
+    }
+
+    .support-hours h3 {
+      color: var(--primary);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .support-hours ul {
+      list-style: none;
+      text-align: left;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .support-hours li {
+      padding: 0.5rem 0;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed var(--gray-light);
+    }
+
+    .support-hours li:last-child {
+      border-bottom: none;
+    }
+
+    /* WhatsApp Float */
+    .float-whatsapp {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #25D366;
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.5);
+      transition: var(--transition);
+      animation: pulse 2s infinite;
+      z-index: 1000;
+    }
+
+    .float-whatsapp:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px rgba(37, 211, 102, 0.7);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-100%); }
+      to { transform: translateY(0); }
+    }
+
+    @keyframes cardAppear {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+     70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+     100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+    }
+
+    @keyframes contactAppear {
+      from {
+        opacity: 0;
+        transform: translateY(20px) rotate(5deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotate(0);
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .nav {
+        padding: 1rem;
+      }
+      
+      .menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 1rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-10px);
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+      }
+      
+      .menu a {
+        padding: 0.8rem;
+        border-bottom: 1px solid var(--gray-light);
+      }
+      
+      .menu a:last-child {
+        border-bottom: none;
+      }
+      
+      .nav.open .menu {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      .hamb {
+        display: block;
+      }
+      
+      .container {
+        margin: 1rem auto;
+        padding: 0.5rem;
+      }
+      
+      .card {
+        padding: 1.8rem;
+      }
+      
+      .card h2 {
+        font-size: 1.8rem;
+      }
+      
+      .contact-methods {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      
+      .contact-card {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .brand {
+        font-size: 1.5rem;
+      }
+      
+      .card {
+        padding: 1.5rem;
+      }
+      
+      .card h2 {
+        font-size: 1.6rem;
+      }
+      
+      .contact-icon {
+        font-size: 2rem;
+      }
+      
+      .contact-card h3 {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="brand">AS SMM Panel</div>
+    <button class="hamb btn outline" onclick="toggleMenu()">☰</button>
+    <div class="menu">
+      <a href="/">Login</a>
+      <a href="/payments.html">Payments</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card">
+      <h2>Contact Us</h2>
+      
+      <div class="contact-methods">
+        <div class="contact-card">
+          <div class="contact-icon">💬</div>
+          <h3>WhatsApp Support</h3>
+          <a href="https://wa.me/923702723151" target="_blank">+92 370 2723151</a>
+          <p>Fast response</p>
+        </div>
+        
+        <div class="contact-card">
+          <div class="contact-icon">📧</div>
+          <h3>Email Support</h3>
+          <p id="adminEmail">ahrar.0932@gmail.com</p>
+          <p>Admin response</p>
+        </div>
+      </div>
+      
+      <div class="support-hours">
+        <h3>Support Hours</h3>
+        <ul>
+          <li><span>Monday - Friday:</span> <span>9AM - 11PM</span></li>
+          <li><span>Saturday - Sunday:</span> <span>10AM - 10PM</span></li>
+        </ul>
+      </div>
+      
+      <p style="margin-top: 1.5rem; font-style: italic;">
+        We typically respond within 1-2 hours during support hours.
+      </p>
+    </div>
+  </div>
+
+  <a class="float-whatsapp" href="https://wa.me/923702723151" target="_blank">💬</a>
+  
+  <script>
+    function toggleMenu(){ 
+      document.getElementById('nav').classList.toggle('open'); 
+    }
+    
+    // Fetch admin email (same as Gmail user if logged-in admin, otherwise show placeholder)
+    fetch('/api/me').then(r=>r.json()).then(j=>{
+      document.getElementById('adminEmail').innerText = j?.user?.email || 'ahrar.0932@gmail.com';
+    }).catch(() => {
+      document.getElementById('adminEmail').innerText = 'ahrar.0932@gmail.com';
+    });
+    
+    // Add animation to contact cards
+    document.addEventListener('DOMContentLoaded', function() {
+      const contactCards = document.querySelectorAll('.contact-card');
+      contactCards.forEach((card, index) => {
+        card.style.animation = `contactAppear 0.6s ease ${index * 0.2}s forwards`;
+        card.style.opacity = '0';
+      });
+    });
+  </script>
+</body>
+</html>
