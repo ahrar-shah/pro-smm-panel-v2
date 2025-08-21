@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
@@ -10,7 +9,6 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // ===== MongoDB Connection =====
 mongoose
@@ -147,7 +145,6 @@ app.post("/api/order", authRequired, upload.single("proof"), async (req, res) =>
 
 // ===== Admin Routes =====
 app.get("/api/admin/orders", authRequired, async (req, res) => {
-  // Only allow specific admin email
   if (req.session.user.email !== process.env.ADMIN_EMAIL) {
     return res.status(403).json({ error: "Forbidden" });
   }
@@ -163,5 +160,5 @@ app.post("/api/admin/update/:id", authRequired, async (req, res) => {
   res.json({ success: true });
 });
 
-// ===== Start Server =====
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+// ===== Export for Vercel =====
+module.exports = app;
