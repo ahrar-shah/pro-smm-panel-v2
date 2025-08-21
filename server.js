@@ -73,10 +73,11 @@ const sessionConfig = {
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
 };
+
 
 // If in production, trust the proxy (Vercel)
 if (process.env.NODE_ENV === 'production') {
