@@ -78,7 +78,6 @@ const sessionConfig = {
   }
 };
 
-
 // If in production, trust the proxy (Vercel)
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
@@ -122,10 +121,12 @@ const authRequired = (req, res, next) => {
   next();
 };
 
-const isAdmin = (req) =>
-  req.session?.user?.email &&
-  process.env.GMAIL_USER &&
-  req.session.user.email.toLowerCase() === process.env.GMAIL_USER.toLowerCase();
+// Fixed admin check - use ADMIN_EMAIL instead of GMAIL_USER
+const isAdmin = (req) => {
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.GMAIL_USER;
+  return req.session?.user?.email && adminEmail &&
+    req.session.user.email.toLowerCase() === adminEmail.toLowerCase();
+};
 
 const adminRequired = (req, res, next) => {
   if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
@@ -154,9 +155,17 @@ app.post("/api/signup", async (req, res) => {
       phone,
       password: hash,
       createdAt: new Date().toISOString(),
+      isAdmin: email.toLowerCase() === (process.env.ADMIN_EMAIL || process.env.GMAIL_USER || "").toLowerCase()
     };
     users.push(user);
-    req.session.user = { id: user.id, username, name, email, phone };
+    req.session.user = { 
+      id: user.id, 
+      username, 
+      name, 
+      email, 
+      phone,
+      isAdmin: user.isAdmin 
+    };
     res.json({ ok: true, user: req.session.user });
   } catch (e) {
     console.error(e);
@@ -171,7 +180,15 @@ app.post("/api/login", async (req, res) => {
     if (!user) return res.status(400).json({ error: "Invalid credentials" });
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(400).json({ error: "Invalid credentials" });
-    req.session.user = { id: user.id, username: user.username, name: user.name, email: user.email, phone: user.phone };
+    
+    req.session.user = { 
+      id: user.id, 
+      username: user.username, 
+      name: user.name, 
+      email: user.email, 
+      phone: user.phone,
+      isAdmin: user.isAdmin 
+    };
     res.json({ ok: true, user: req.session.user });
   } catch (e) {
     console.error("Login error:", e);
@@ -354,7 +371,7 @@ app.get("/terms.html", (req, res) => {
 });
 
 app.get("/contact.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "contact.html"));
+  res.sendFile(path.join(__dirname, "public", "terms.html"));
 });
 
 // Health check endpoint for Vercel
