@@ -7,6 +7,7 @@ import nodemailer from "nodemailer";
 import { v4 as uuidv4 } from "uuid";
 import { fileURLToPath } from "url";
 import path from "path";
+import fs from "fs";
 
 dotenv.config();
 
@@ -16,12 +17,45 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// In-memory storage instead of JSON files
-let users = [];
-let orders = [];
-let services = [];
+// File paths for persistent storage
+const SERVICES_FILE = path.join(__dirname, 'data', 'services.json');
+const USERS_FILE = path.join(__dirname, 'data', 'users.json');
+const ORDERS_FILE = path.join(__dirname, 'data', 'orders.json');
 
-// Initialize with some default services if empty
+// Ensure data directory exists
+if (!fs.existsSync(path.join(__dirname, 'data'))) {
+  fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+}
+
+// Helper functions for file-based persistence
+const readData = (filePath, defaultValue = []) => {
+  try {
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error(`Error reading ${filePath}:`, error);
+  }
+  return defaultValue;
+};
+
+const writeData = (filePath, data) => {
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    return true;
+  } catch (error) {
+    console.error(`Error writing ${filePath}:`, error);
+    return false;
+  }
+};
+
+// Load data from files
+let users = readData(USERS_FILE);
+let orders = readData(ORDERS_FILE);
+let services = readData(SERVICES_FILE);
+
+// Initialize with default services if empty
 if (services.length === 0) {
   services = [
     // {
@@ -49,6 +83,7 @@ if (services.length === 0) {
     //   ]
     // }
   ];
+  writeData(SERVICES_FILE, services);
 }
 
 // For Vercel, we need to handle file uploads differently
@@ -158,6 +193,8 @@ app.post("/api/signup", async (req, res) => {
       isAdmin: email.toLowerCase() === (process.env.ADMIN_EMAIL || process.env.GMAIL_USER || "").toLowerCase()
     };
     users.push(user);
+    writeData(USERS_FILE, users);
+    
     req.session.user = { 
       id: user.id, 
       username, 
@@ -223,7 +260,13 @@ app.post("/api/admin/services/add", authRequired, adminRequired, async (req, res
     return res.status(409).json({ error: "Service already exists" });
 
   platformBlock.services.push({ name, price: Number(price), active: true });
-  res.json({ ok: true, services });
+  
+  // Save to file
+  if (writeData(SERVICES_FILE, services)) {
+    res.json({ ok: true, services });
+  } else {
+    res.status(500).json({ error: "Failed to save service" });
+  }
 });
 
 app.post("/api/admin/services/delete", authRequired, adminRequired, async (req, res) => {
@@ -231,7 +274,13 @@ app.post("/api/admin/services/delete", authRequired, adminRequired, async (req, 
   const pIdx = services.findIndex((p) => p.platform.toLowerCase() === platform.toLowerCase());
   if (pIdx === -1) return res.status(404).json({ error: "Platform not found" });
   services[pIdx].services = services[pIdx].services.filter((s) => s.name.toLowerCase() !== name.toLowerCase());
-  res.json({ ok: true, services });
+  
+  // Save to file
+  if (writeData(SERVICES_FILE, services)) {
+    res.json({ ok: true, services });
+  } else {
+    res.status(500).json({ error: "Failed to delete service" });
+  }
 });
 
 app.post("/api/admin/services/toggle", authRequired, adminRequired, async (req, res) => {
@@ -241,7 +290,13 @@ app.post("/api/admin/services/toggle", authRequired, adminRequired, async (req, 
   const sv = pb.services.find((s) => s.name.toLowerCase() === name.toLowerCase());
   if (!sv) return res.status(404).json({ error: "Service not found" });
   sv.active = Boolean(active);
-  res.json({ ok: true, services });
+  
+  // Save to file
+  if (writeData(SERVICES_FILE, services)) {
+    res.json({ ok: true, services });
+  } else {
+    res.status(500).json({ error: "Failed to update service" });
+  }
 });
 
 // ===== Orders =====
@@ -288,6 +343,9 @@ app.post("/api/order", authRequired, upload.single("screenshot"), async (req, re
       createdAt: new Date().toISOString(),
     };
     orders.push(order);
+    
+    // Save orders to file
+    writeData(ORDERS_FILE, orders);
 
     // Email to admin (your Gmail)
     if (transporter) {
@@ -344,6 +402,10 @@ app.post("/api/admin/orders/status", authRequired, adminRequired, async (req, re
   const idx = orders.findIndex((o) => o.id === id);
   if (idx === -1) return res.status(404).json({ error: "Order not found" });
   orders[idx].status = status;
+  
+  // Save updated orders to file
+  writeData(ORDERS_FILE, orders);
+  
   res.json({ ok: true });
 });
 
