@@ -58,30 +58,30 @@ let services = readData(SERVICES_FILE);
 // Initialize with default services if empty
 if (services.length === 0) {
   services = [
-    // {
-    //   platform: "YouTube",
-    //   services: [
-    //     { name: "Likes", price: 100, active: true },
-    //     { name: "Subscribers", price: 200, active: true },
-    //     { name: "Views", price: 50, active: true }
-    //   ]
-    // },
-    // {
-    //   platform: "Instagram",
-    //   services: [
-    //     { name: "Likes", price: 150, active: true },
-    //     { name: "Followers", price: 300, active: true },
-    //     { name: "Comments", price: 200, active: true }
-    //   ]
-    // },
-    // {
-    //   platform: "TikTok",
-    //   services: [
-    //     { name: "Likes", price: 120, active: true },
-    //     { name: "Followers", price: 250, active: true },
-    //     { name: "Views", price: 80, active: true }
-    //   ]
-    // }
+    {
+      platform: "YouTube",
+      services: [
+        { name: "Likes", price: 100, active: true },
+        { name: "Subscribers", price: 200, active: true },
+        { name: "Views", price: 50, active: true }
+      ]
+    },
+    {
+      platform: "Instagram",
+      services: [
+        { name: "Likes", price: 150, active: true },
+        { name: "Followers", price: 300, active: true },
+        { name: "Comments", price: 200, active: true }
+      ]
+    },
+    {
+      platform: "TikTok",
+      services: [
+        { name: "Likes", price: 120, active: true },
+        { name: "Followers", price: 250, active: true },
+        { name: "Views", price: 80, active: true }
+      ]
+    }
   ];
   writeData(SERVICES_FILE, services);
 }
