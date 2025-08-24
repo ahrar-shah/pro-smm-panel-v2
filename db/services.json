@@ -1,20 +1,60 @@
 [
   {
-    "platform": "TikTok",
+    "platform": "YouTube",
     "services": [
-      { "name": "Followers", "price": 1, "active": true },
-      { "name": "Likes", "price": 0.5, "active": true },
-      { "name": "Comments", "price": 2, "active": true }
+      { "name": "Likes", "price": 1, "active": true },
+      { "name": "Comment Likes", "price": 1, "active": true },
+      { "name": "Comment Reply Likes", "price": 1, "active": true },
+      { "name": "Views", "price": 1, "active": true },
+      { "name": "Subscribers", "price": 1, "active": true }
     ]
   },
   {
     "platform": "Instagram",
     "services": [
-      { "name": "Followers", "price": 1.2, "active": true },
-      { "name": "Likes", "price": 0.6, "active": true },
-      { "name": "Comments", "price": 2.5, "active": true },
-      { "name": "Shares", "price": 0.8, "active": true },
-      { "name": "Saves", "price": 0.9, "active": true }
+      { "name": "Real Followers", "price": 1, "active": true },
+      { "name": "Real Likes", "price": 1, "active": true },
+      { "name": "Video Views", "price": 1, "active": true },
+      { "name": "Comments", "price": 1, "active": true },
+      { "name": "Share", "price": 1, "active": true },
+      { "name": "Story Comments", "price": 1, "active": true }
+    ]
+  },
+  {
+    "platform": "TikTok",
+    "services": [
+      { "name": "Followers", "price": 1, "active": true },
+      { "name": "Likes", "price": 1, "active": true },
+      { "name": "Views", "price": 1, "active": true },
+      { "name": "Saves", "price": 1, "active": true },
+      { "name": "Shares", "price": 1, "active": true }
+    ]
+  },
+  {
+    "platform": "Whatsapp",
+    "services": [
+      { "name": "Channel Members", "price": 1, "active": true },
+      { "name": "Channel Emoji Reactions", "price": 1, "active": true }
+    ]
+  },
+  {
+    "platform": "Facebook",
+    "services": [
+      { "name": "Post Reactions", "price": 1, "active": true },
+      { "name": "Page Likes + Followers", "price": 1, "active": true },
+      { "name": "Post Likes", "price": 1, "active": true },
+      { "name": "Group Members", "price": 1, "active": true },
+      { "name": "Live Stream Views", "price": 1, "active": true },
+      { "name": "Story Views", "price": 1, "active": true },
+      { "name": "Shares", "price": 1, "active": true }
+    ]
+  },
+  {
+    "platform": "Telegram",
+    "services": [
+      { "name": "Members", "price": 1, "active": true },
+      { "name": "Bot Start", "price": 1, "active": true },
+      { "name": "Post View", "price": 1, "active": true }
     ]
   }
 ]
