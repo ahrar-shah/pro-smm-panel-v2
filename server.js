@@ -58,31 +58,66 @@ let services = readData(SERVICES_FILE);
 // Initialize with default services if empty
 if (services.length === 0) {
   services = [
-    {
-      platform: "YouTube",
-      services: [
-        { name: "Likes", price: 100, active: true },
-        { name: "Subscribers", price: 200, active: true },
-        { name: "Views", price: 50, active: true }
-      ]
-    },
-    {
-      platform: "Instagram",
-      services: [
-        { name: "Likes", price: 150, active: true },
-        { name: "Followers", price: 300, active: true },
-        { name: "Comments", price: 200, active: true }
-      ]
-    },
-    {
-      platform: "TikTok",
-      services: [
-        { name: "Likes", price: 120, active: true },
-        { name: "Followers", price: 250, active: true },
-        { name: "Views", price: 80, active: true }
-      ]
-    }
-  ];
+  {
+    platform: "YouTube",
+    services: [
+      { name: "Likes", price: 1, active: true },
+      { name: "Comment Likes", price: 1, active: true },
+      { name: "Comment Reply Likes", price: 1, active: true },
+      { name: "Views", price: 1, active: true },
+      { name: "Subscribers", price: 1, active: true }
+    ]
+  },
+  {
+    platform: "Instagram",
+    services: [
+      { name: "Real Followers", price: 1, active: true },
+      { name: "Real Likes", price: 1, active: true },
+      { name: "Video Views", price: 1, active: true },
+      { name: "Comments", price: 1, active: true },
+      { name: "Share", price: 1, active: true },
+      { name: "Story Comments", price: 1, active: true }
+    ]
+  },
+  {
+    platform: "TikTok",
+    services: [
+      { name: "Followers", price: 1, active: true },
+      { name: "Likes", price: 1, active: true },
+      { name: "Views", price: 1, active: true },
+      { name: "Saves", price: 1, active: true },
+      { name: "Shares", price: 1, active: true }
+    ]
+  },
+  {
+    platform: "Whatsapp",
+    services: [
+      { name: "Channel Members", price: 1, active: true },
+      { name: "Channel Emoji Reactions", price: 1, active: true }
+    ]
+  },
+  {
+    platform: "Facebook",
+    services: [
+      { name: "Post Reactions", price: 1, active: true },
+      { name: "Page Likes + Followers", price: 1, active: true },
+      { name: "Post Likes", price: 1, active: true },
+      { name: "Group Members", price: 1, active: true },
+      { name: "Live Stream Views", price: 1, active: true },
+      { name: "Story Views", price: 1, active: true },
+      { name: "Shares", price: 1, active: true }
+    ]
+  },
+  {
+    platform: "Telegram",
+    services: [
+      { name: "Members", price: 1, active: true },
+      { name: "Bot Start", price: 1, active: true },
+      { name: "Post View", price: 1, active: true }
+    ]
+  }
+];
+
   writeData(SERVICES_FILE, services);
 }
 
